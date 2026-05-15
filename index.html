@@ -40,7 +40,7 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .shell{max-width:1300px;margin:0 auto;padding:1.25rem 1.5rem 2rem;display:flex;flex-direction:column;gap:.875rem}
 
 /* ── HEADER ── */
-.hdr{background:var(--dk);border-radius:var(--rad);overflow:hidden}
+.hdr{background:var(--dk);border-radius:var(--rad)}
 .hdr-top{padding:1.25rem 1.75rem 1.1rem;display:flex;align-items:center;justify-content:space-between}
 .brand{display:flex;flex-direction:column;gap:3px}
 .brand-tag{font-size:var(--ts-xs);font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--g);display:flex;align-items:center;gap:.4rem}
@@ -51,13 +51,13 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .hdr-actions{display:flex;align-items:center;gap:.35rem}
 .hbtn{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:.5px solid rgba(255,255,255,.1);color:rgba(255,255,255,.45);font-size:15px;cursor:pointer;background:none;font-family:var(--ff);text-decoration:none;transition:all .12s;flex-shrink:0}
 .hbtn:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)}
-.hdr-focus{display:flex;align-items:center;gap:.6rem;padding:.6rem 1.75rem;background:rgba(255,255,255,.04);border-top:.5px solid rgba(255,255,255,.06)}
+.hdr-focus{display:flex;align-items:center;gap:.6rem;padding:.6rem 1.75rem;background:rgba(255,255,255,.04);border-top:.5px solid rgba(255,255,255,.06);border-radius:0 0 var(--rad) var(--rad)}
 .focus-pill{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);font-size:var(--ts-xs);font-weight:600;padding:3px 11px;border-radius:20px;white-space:nowrap;letter-spacing:.02em}
 .focus-text{font-size:var(--ts-xs);color:rgba(255,255,255,.32);font-weight:300}
 
 /* ── UTILITY LAUNCHER ── */
-.util-wrap{position:relative}
-.util-menu{position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:.5px solid var(--bdr);border-radius:var(--rad-sm);min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:50;display:none;overflow:hidden;animation:popIn .12s ease}
+..util-wrap{position:relative}
+.util-menu{position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:.5px solid var(--bdr);border-radius:var(--rad-sm);min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:500;display:none;overflow:hidden;animation:popIn .12s ease;max-height:420px;overflow-y:auto}
 .util-menu.open{display:block}
 @keyframes popIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 .util-sep{font-size:var(--ts-xs);font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--t3);padding:.55rem .8rem .25rem}
