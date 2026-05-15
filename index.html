@@ -56,8 +56,7 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .focus-text{font-size:var(--ts-xs);color:rgba(255,255,255,.32);font-weight:300}
 
 /* ── UTILITY LAUNCHER ── */
-..util-wrap{position:relative}
-.util-menu{position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:.5px solid var(--bdr);border-radius:var(--rad-sm);min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:500;display:none;overflow:hidden;animation:popIn .12s ease;max-height:420px;overflow-y:auto}
+...util-menu{position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:.5px solid var(--bdr);border-radius:var(--rad-sm);min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:500;display:none;overflow:hidden;animation:popIn .12s ease;max-height:420px;overflow-y:auto}
 .util-menu.open{display:block}
 @keyframes popIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 .util-sep{font-size:var(--ts-xs);font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--t3);padding:.55rem .8rem .25rem}
