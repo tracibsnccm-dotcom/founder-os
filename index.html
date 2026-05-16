@@ -441,8 +441,69 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 
 </div><!-- /shell -->
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 // ── CONSTANTS ────────────────────────────────────────────────────
+
+// ═══════════════════════════════════════════════════════════════
+// SUPABASE CONFIG — paste your credentials here
+// ═══════════════════════════════════════════════════════════════
+const SUPA_URL = '';  // e.g. https://xxxx.supabase.co
+const SUPA_KEY = '';  // your anon/public key
+
+let SB = null;
+try {
+  if (SUPA_URL && SUPA_KEY && typeof supabase !== 'undefined') {
+    SB = supabase.createClient(SUPA_URL, SUPA_KEY);
+    console.log('Founder OS: Supabase connected ✓');
+  } else {
+    console.log('Founder OS: running in local-only mode (no Supabase credentials)');
+  }
+} catch(e) { console.warn('Founder OS: Supabase init failed', e); }
+
+// ── DB HELPERS ─────────────────────────────────────────────────
+async function dbInsert(item) {
+  if (!SB) return null;
+  try {
+    const { data, error } = await SB.from('founder_os_items')
+      .insert({ ...item, updated_at: new Date().toISOString() })
+      .select().single();
+    if (error) throw error;
+    return data;
+  } catch(e) { console.warn('dbInsert:', e); return null; }
+}
+
+async function dbUpsert(type, key, fields) {
+  if (!SB) return null;
+  try {
+    const { data, error } = await SB.from('founder_os_items')
+      .upsert(
+        { item_type: type, entity_key: key, ...fields, updated_at: new Date().toISOString() },
+        { onConflict: 'item_type,entity_key' }
+      ).select().single();
+    if (error) throw error;
+    return data;
+  } catch(e) { console.warn('dbUpsert:', e); return null; }
+}
+
+async function dbDelete(id) {
+  if (!SB) return;
+  try {
+    const { error } = await SB.from('founder_os_items').delete().eq('id', id);
+    if (error) throw error;
+  } catch(e) { console.warn('dbDelete:', e); }
+}
+
+async function dbLoadAll() {
+  if (!SB) return [];
+  try {
+    const { data, error } = await SB.from('founder_os_items')
+      .select('*').order('created_at', { ascending: true });
+    if (error) throw error;
+    return data || [];
+  } catch(e) { console.warn('dbLoadAll:', e); return []; }
+}
+
 const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DOW={
@@ -460,6 +521,21 @@ const KPI_DEF=[
   {k:'Open rate',v:'—'},{k:'Click rate',v:'—'},
   {k:'Bounce rate',v:'—'},{k:'Verified contacts',v:'—'}
 ];
+
+
+// HQ editable state (loaded from Supabase on startup)
+let hqState = {
+  priorities: [
+    { text: 'Review open RFPs', entity: 'W4TWP' },
+    { text: 'Attorney outreach — Case Clarity', entity: 'Case Clarity' },
+    { text: 'NurseBridge email platform decision', entity: 'NurseBridge' }
+  ],
+  blockers: [
+    'NurseBridge: email platform TBD',
+    'W4TWP: 3 platform renewals needed'
+  ],
+  milestone: 'NAE & Case Clarity batches 3+4 — May 21'
+};
 
 // Badge system — 5 states only
 const BMAP={
@@ -578,6 +654,7 @@ function renderWS(){
       sopData[k]=this.value;
       const b=document.getElementById('sopb_'+k);if(b){b.className='sop-badge '+m.c;b.textContent=m.l;}
       const bar=document.getElementById('sopbar_'+k);if(bar){bar.style.width=m.bar;bar.style.background=m.barClr;}
+      dbUpsert('sop_status','sop_'+k,{status:this.value});
     };
   });
 }
@@ -635,34 +712,61 @@ const CC_C=[{t:'MWFCC-05-14',s:'MWF',c:'2,500',d:'May 14'},{t:'TTHCC-05-13',s:'T
 // ── RENDERERS ──────────────────────────────────────────────────────
 const R={};
 
-R.hq=()=>`
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.25rem">
-<div class="hqm"><div class="hqm-l">Active campaigns</div><div class="hqm-v">2</div></div>
-<div class="hqm"><div class="hqm-l">Contacts in sequence</div><div class="hqm-v">19,900</div></div>
-<div class="hqm"><div class="hqm-l">Entities active</div><div class="hqm-v">3 / 4</div></div>
-<div class="hqm"><div class="hqm-l">SOPs complete</div><div class="hqm-v">0 / 5</div></div>
-</div>
-<div class="wg2">
-<div>
-<div class="wsh"><span class="wsbar"></span><span class="wsl">Portfolio</span></div>
-<div style="display:flex;flex-direction:column;gap:.5rem">
-${[['NAE','#1D7A60','Active','12,000 queued','2 campaigns','nae'],['NurseBridge','#1A8585','Pending','Domain warming','Email platform TBD','nb'],['Case Clarity','#6D5BA6','Active','8,200 queued','Batch 1 fired','cc'],['W4TWP','#7A6BB8','Review','3 renewals needed','RFP paused','w4'],['RCMS','#1A5C5C','Active','Parent entity','Cross-entity ops','rcms']].map(([n,c,s,s1,s2,eid2])=>
-`<div class="port-c" style="--lc:${c}" onclick="selE('${eid2}')"><div class="port-top"><span class="port-name">${n}</span>${bdg(s)}</div><div class="port-stats"><span class="port-tag">${s1}</span><span class="port-tag">${s2}</span></div></div>`
-).join('')}
-</div>
-</div>
-<div>${thisWeek()}</div>
-</div>
-<div class="wg2">
-<div>
-<div class="wsh"><span class="wsbar"></span><span class="wsl">SOP progress</span></div>
-${sopTracker()}
-</div>
-<div>
-<div class="wsh"><span class="wsbar"></span><span class="wsl">Recent decisions</span></div>
-<div class="dlog">${decisionLog(3)}</div>
-</div>
-</div>`;
+R.hq=function(){
+  var portfolio=[
+    ['NAE','#1D7A60','Active','12,000 queued','2 campaigns','nae'],
+    ['NurseBridge','#1A8585','Pending','Domain warming','Email platform TBD','nb'],
+    ['Case Clarity','#6D5BA6','Active','8,200 queued','Batch 1 fired','cc'],
+    ['W4TWP','#7A6BB8','Review','3 renewals needed','RFP paused','w4'],
+    ['RCMS','#1A5C5C','Active','Parent entity','Cross-entity ops','rcms']
+  ].map(function(r){
+    var n=r[0],c=r[1],s=r[2],s1=r[3],s2=r[4],eid2=r[5];
+    return '<div class="port-c" style="--lc:'+c+'" onclick="selE(\''+eid2+'\')">'
+      +'<div class="port-top"><span class="port-name">'+n+'</span>'+bdg(s)+'</div>'
+      +'<div class="port-stats"><span class="port-tag">'+s1+'</span><span class="port-tag">'+s2+'</span></div>'
+      +'</div>';
+  }).join('');
+
+  var prio=hqState.priorities.map(function(p,i){
+    return '<div class="tw-row"><span class="tw-num">'+(i+1)+'</span>'
+      +'<div class="tw-edit" contenteditable="true" data-ph="Add priority..." onblur="foSaveHQ(this,\'priority\','+i+')">'+p.text+'</div>'
+      +'<div class="tw-ent-edit" contenteditable="true" data-ph="Entity..." onblur="foSaveHQ(this,\'priority_ent\','+i+')">'+p.entity+'</div>'
+      +'</div>';
+  }).join('');
+
+  var blockers=hqState.blockers.map(function(b,i){
+    return '<div class="tw-block"><i class="ti ti-alert-triangle" style="font-size:11px;flex-shrink:0;margin-top:2px"></i>'
+      +'<div class="tw-block-edit" contenteditable="true" data-ph="Add blocker..." onblur="foSaveHQ(this,\'blocker\','+i+')">'+b+'</div>'
+      +'</div>';
+  }).join('');
+
+  return '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.25rem">'
+    +'<div class="hqm" style="background:#157272"><div class="hqm-l">Active campaigns</div><div class="hqm-v">2</div></div>'
+    +'<div class="hqm" style="background:#1F8A8A"><div class="hqm-l">Contacts in sequence</div><div class="hqm-v">19,900</div></div>'
+    +'<div class="hqm" style="background:#6D5BA6"><div class="hqm-l">Entities active</div><div class="hqm-v">3 / 4</div></div>'
+    +'<div class="hqm" style="background:#3A5F6F"><div class="hqm-l">SOPs complete</div><div class="hqm-v">0 / 5</div></div>'
+    +'</div>'
+    +'<div class="wg2">'
+      +'<div>'
+        +'<div class="wsh"><span class="wsbar"></span><span class="wsl">Portfolio</span></div>'
+        +'<div style="display:flex;flex-direction:column;gap:.5rem">'+portfolio+'</div>'
+      +'</div>'
+      +'<div>'
+        +'<div class="twk">'
+          +'<div class="twk-hdr"><span>This Week</span><span style="font-weight:300;color:var(--t3);text-transform:none;letter-spacing:0;font-size:10px">'+DOW[new Date().getDay()].l+'</span></div>'
+          +'<div class="tw-sec"><div class="tw-lbl">Priorities</div>'+prio+'</div>'
+          +'<div class="tw-sec"><div class="tw-lbl">Blockers</div>'+blockers+'</div>'
+          +'<div class="tw-sec"><div class="tw-lbl">Next milestone</div>'
+            +'<div class="tw-mil-edit" contenteditable="true" data-ph="Next milestone..." onblur="foSaveHQ(this,\'milestone\',0)">'+hqState.milestone+'</div>'
+          +'</div>'
+        +'</div>'
+      +'</div>'
+    +'</div>'
+    +'<div class="wg2">'
+      +'<div><div class="wsh"><span class="wsbar"></span><span class="wsl">SOP progress</span></div>'+sopTracker()+'</div>'
+      +'<div><div class="wsh"><span class="wsbar"></span><span class="wsl">Recent decisions</span></div><div class="dlog">'+decisionLog(3)+'</div></div>'
+    +'</div>';
+};
 
 R.rcms_dashboard=()=>`
 <div class="wg2">
@@ -873,19 +977,35 @@ window.closeSd=function(){
   document.getElementById('sd-drw').classList.remove('open');
 };
 window.saveSd=function(){
-  kpiData.forEach((k,i)=>{const el=document.getElementById('sk'+i);if(el&&el.value){k.v=el.value;const kv=document.getElementById('kv'+i);if(kv)kv.textContent=k.v;}});
+  kpiData.forEach((k,i)=>{
+    const el=document.getElementById('sk'+i);
+    if(el&&el.value){
+      k.v=el.value;
+      const kv=document.getElementById('kv'+i);
+      if(kv)kv.textContent=k.v;
+      dbUpsert('kpi','kpi_'+i,{title:k.k,body:k.v});
+    }
+  });
   closeSd();
 };
 
 // ── DECISIONS ─────────────────────────────────────────────────────
-window.addD=function(){
+window.addD=async function(){
   const t=document.getElementById('da_t'),c=document.getElementById('da_c'),s=document.getElementById('da_s');
   if(!t||!t.value.trim())return;
-  const d=new Date();decisions.unshift({d:MONS[d.getMonth()].slice(0,3)+' '+d.getDate(),t:t.value.trim(),cat:c.value,s:s.value});
+  const d=new Date();
+  const dateStr=MONS[d.getMonth()].slice(0,3)+' '+d.getDate();
+  const entry={d:dateStr,t:t.value.trim(),cat:c.value,s:s.value,id:null};
+  const saved=await dbInsert({item_type:'decision',title:entry.t,category:entry.cat,status:entry.s,body:dateStr});
+  if(saved)entry.id=saved.id;
+  decisions.unshift(entry);
   const dl=document.getElementById('dlog');if(dl)dl.innerHTML=decisionLog();
 };
-window.delD=function(i){
-  decisions.splice(i,1);const dl=document.getElementById('dlog');if(dl)dl.innerHTML=decisionLog();
+window.delD=async function(i){
+  const entry=decisions[i];
+  if(entry&&entry.id)await dbDelete(entry.id);
+  decisions.splice(i,1);
+  const dl=document.getElementById('dlog');if(dl)dl.innerHTML=decisionLog();
 };
 
 // ── CAPTURE ───────────────────────────────────────────────────────
@@ -893,28 +1013,118 @@ window.toggleCap=function(){
   document.getElementById('cap-body').classList.toggle('open');
   document.getElementById('cap-arr').classList.toggle('open');
 };
-function mkC(t,dt,nt,ex){
+function mkC(t,dt,nt,ex,dbId){
   const c=document.createElement('div');c.className='capcard';
-  c.innerHTML=`<button class="cdl" onclick="this.parentElement.remove()"><i class="ti ti-x"></i></button><div class="cct">${t}</div>${dt?'<div class="ccd">'+dt+'</div>':''}${nt?'<div class="ccn">'+nt+'</div>':''}${ex||''}`;
+  if(dbId)c.dataset.dbid=dbId;
+  c.innerHTML=`<button class="cdl" onclick="foDelCard(this)"><i class="ti ti-x"></i></button><div class="cct">${t}</div>${dt?'<div class="ccd">'+dt+'</div>':''}${nt?'<div class="ccn">'+nt+'</div>':''}${ex||''}`;
   return c;
 }
-function wire(ti,di,ni,bi,li,gx){
+function wire(ti,di,ni,bi,li,itype,gx){
   const T=document.getElementById(ti),DD=document.getElementById(di),N=document.getElementById(ni),L=document.getElementById(li);
   if(!T)return;DD.value=tds();
-  document.getElementById(bi).onclick=()=>{
+  document.getElementById(bi).onclick=async()=>{
     if(!T.value.trim())return;
     const h=L.querySelector('.cht');if(h)h.remove();
-    L.appendChild(mkC(T.value.trim(),DD.value,N.value.trim(),gx?gx():''));
+    const extra=gx?gx():'';
+    let dbId=null;
+    if(itype){
+      const saved=await dbInsert({item_type:itype,title:T.value.trim(),body:N.value.trim(),due_date:DD.value||null,metadata:extra?{badge:extra}:{}});
+      if(saved)dbId=saved.id;
+    }
+    L.appendChild(mkC(T.value.trim(),DD.value,N.value.trim(),extra,dbId));
     T.value='';N.value='';DD.value=tds();
   };
   T.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById(bi).click();}};
 }
-wire('bt','bd','bn','ba','bl');
-wire('pt','pd','pn','pa','pl');
+wire('bt','bd','bn','ba','bl','brain_dump');
+wire('pt','pd','pn','pa','pl','parking_lot');
 wire('tt2','td','tn','ta3','tl3',()=>{const v=document.getElementById('tc').value,m=TRMAP[v];return m?`<span class="trbg ${m.c}">${m.l}</span>`:''});
+
+
+// ── SUPABASE-BACKED FUNCTIONS ─────────────────────────────────
+window.foDelCard=async function(btn){
+  const card=btn.parentElement;
+  const id=card.dataset.dbid;
+  if(id)await dbDelete(id);
+  card.remove();
+};
+
+window.foSaveHQ=async function(el,type,idx){
+  const val=el.textContent.trim();
+  if(type==='priority'){
+    hqState.priorities[idx].text=val;
+    await dbUpsert('priority','hq_priority_'+idx,{title:val,body:hqState.priorities[idx].entity});
+  } else if(type==='priority_ent'){
+    hqState.priorities[idx].entity=val;
+    await dbUpsert('priority','hq_priority_'+idx,{title:hqState.priorities[idx].text,body:val});
+  } else if(type==='blocker'){
+    hqState.blockers[idx]=val;
+    await dbUpsert('blocker','hq_blocker_'+idx,{title:val});
+  } else if(type==='milestone'){
+    hqState.milestone=val;
+    await dbUpsert('milestone','hq_milestone',{title:val});
+  }
+};
+
+async function loadFromSupabase(){
+  const items=await dbLoadAll();
+  if(!items||!items.length)return;
+
+  // Restore SOP statuses
+  items.filter(i=>i.item_type==='sop_status').forEach(i=>{
+    const k=i.entity_key.replace('sop_','');
+    if(k in sopData)sopData[k]=i.status||'ns';
+  });
+
+  // Restore KPI values
+  items.filter(i=>i.item_type==='kpi').forEach(i=>{
+    const idx=parseInt(i.entity_key.replace('kpi_',''));
+    if(kpiData[idx]&&i.body)kpiData[idx].v=i.body;
+  });
+  kpiData.forEach((k,i)=>{const kv=document.getElementById('kv'+i);if(kv)kv.textContent=k.v;});
+
+  // Restore decisions
+  const decs=items.filter(i=>i.item_type==='decision');
+  if(decs.length){
+    decisions.length=0;
+    decs.reverse().forEach(i=>decisions.unshift({id:i.id,d:i.body||'',t:i.title||'',cat:i.category||'Operations',s:i.status||'Pending'}));
+  }
+
+  // Restore HQ editable state
+  items.filter(i=>i.item_type==='priority').forEach(i=>{
+    const idx=parseInt(i.entity_key.replace('hq_priority_',''));
+    if(hqState.priorities[idx]){
+      if(i.title)hqState.priorities[idx].text=i.title;
+      if(i.body)hqState.priorities[idx].entity=i.body;
+    }
+  });
+  items.filter(i=>i.item_type==='blocker').forEach(i=>{
+    const idx=parseInt(i.entity_key.replace('hq_blocker_',''));
+    if(hqState.blockers[idx]!==undefined&&i.title)hqState.blockers[idx]=i.title;
+  });
+  const ms=items.find(i=>i.item_type==='milestone'&&i.entity_key==='hq_milestone');
+  if(ms&&ms.title)hqState.milestone=ms.title;
+
+  // Re-render current workspace to pick up restored state
+  renderWS();
+
+  // Restore capture items (brain dump, parking lot, triage)
+  [['brain_dump','bl'],['parking_lot','pl'],['triage','tl3']].forEach(([type,lid])=>{
+    const list=document.getElementById(lid);
+    if(!list)return;
+    const typeItems=items.filter(i=>i.item_type===type);
+    if(!typeItems.length)return;
+    const hint=list.querySelector('.cht');if(hint)hint.remove();
+    typeItems.forEach(item=>{
+      const badge=item.metadata&&item.metadata.badge?item.metadata.badge:'';
+      list.appendChild(mkC(item.title||'',item.due_date||'',item.body||'',badge,item.id));
+    });
+  });
+}
 
 // ── START ─────────────────────────────────────────────────────────
 selE('hq');
+loadFromSupabase();
 </script>
 </body>
 </html>
