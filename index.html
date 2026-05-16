@@ -506,13 +506,29 @@ async function dbInsert(item) {
 async function dbUpsert(type, key, fields) {
   if (!SB) return null;
   try {
-    const { data, error } = await SB.from('founder_os_items')
-      .upsert(
-        { item_type: type, entity_key: key, ...fields, updated_at: new Date().toISOString() },
-        { onConflict: 'item_type,entity_key' }
-      ).select().single();
-    if (error) throw error;
-    return data;
+    // Check if row exists first (partial unique index can't be used as conflict target)
+    const { data: existing } = await SB.from('founder_os_items')
+      .select('id')
+      .eq('item_type', type)
+      .eq('entity_key', key)
+      .maybeSingle();
+
+    if (existing) {
+      // UPDATE existing row
+      const { data, error } = await SB.from('founder_os_items')
+        .update({ ...fields, updated_at: new Date().toISOString() })
+        .eq('id', existing.id)
+        .select().single();
+      if (error) throw error;
+      return data;
+    } else {
+      // INSERT new row
+      const { data, error } = await SB.from('founder_os_items')
+        .insert({ item_type: type, entity_key: key, ...fields, updated_at: new Date().toISOString() })
+        .select().single();
+      if (error) throw error;
+      return data;
+    }
   } catch(e) {
     console.error('Founder OS dbUpsert failed:', type, key, e);
     return null;
@@ -608,7 +624,9 @@ let hqState = {
     'NurseBridge: email platform TBD',
     'W4TWP: 3 platform renewals needed'
   ],
-  milestone: 'NAE & Case Clarity batches 3+4 — May 21'
+  milestone: 'NAE & Case Clarity batches 3+4 — May 21',
+  monthlyReviews: [],
+  quarterlyFocuses: []
 };
 
 // Badge system — 5 states only
@@ -843,6 +861,10 @@ R.hq=function(){
     +'<div class="wg2">'
       +'<div><div class="wsh"><span class="wsbar"></span><span class="wsl">SOP progress</span></div>'+sopTracker()+'</div>'
       +'<div><div class="wsh"><span class="wsbar"></span><span class="wsl">Recent decisions</span></div><div class="dlog">'+decisionLog(3)+'</div></div>'
+    +'</div>'
+    +'<div class="wg2" style="margin-top:1.25rem">'
+      +'<div><div class="wsh"><span class="wsbar"></span><span class="wsl">Monthly executive review</span></div>'+monthlyReviewPanel()+'</div>'
+      +'<div><div class="wsh"><span class="wsbar"></span><span class="wsl">Quarterly focus</span></div>'+quarterlyFocusPanel()+'</div>'
     +'</div>';
 };
 
@@ -1244,6 +1266,16 @@ async function loadFromSupabase(){
   const ms=items.find(i=>i.item_type==='milestone'&&i.entity_key==='hq_milestone');
   if(ms&&ms.title)hqState.milestone=ms.title;
 
+  // Restore monthly reviews
+  items.filter(i=>i.item_type==='monthly_review').reverse().forEach(i=>{
+    hqState.monthlyReviews.push({id:i.id,title:i.title||'',entity:(i.metadata&&i.metadata.entity)||'Shared',status:i.status||'Not started',notes:i.body||''});
+  });
+
+  // Restore quarterly focuses
+  items.filter(i=>i.item_type==='quarterly_focus').reverse().forEach(i=>{
+    hqState.quarterlyFocuses.push({id:i.id,title:i.title||'',quarter:(i.metadata&&i.metadata.quarter)||'Q2',entity:(i.metadata&&i.metadata.entity)||'Shared',notes:i.body||''});
+  });
+
   // Re-render current workspace to pick up restored state
   renderWS();
 
@@ -1260,6 +1292,111 @@ async function loadFromSupabase(){
     });
   });
 }
+
+
+// ── MONTHLY EXECUTIVE REVIEW PANEL ───────────────────────────────
+function monthlyReviewPanel() {
+  var rows = hqState.monthlyReviews.map(function(r,i){
+    return '<div class="pli"><div><div class="plt" style="font-weight:600">'+r.title+'</div><div class="plm">'+r.entity+' · '+r.status+'</div></div>'
+      +'<button onclick="delMonthlyReview('+i+')" style="font-size:11px;color:var(--t3);border:none;background:none;cursor:pointer"><i class="ti ti-x"></i></button></div>';
+  }).join('');
+
+  return '<div style="display:flex;flex-direction:column;gap:.5rem">'
+    + (rows || '<div class="cht">No reviews yet</div>')
+    +'</div>'
+    +'<div class="dadd" style="margin-top:.65rem">'
+      +'<input class="dinp" id="mr_title" placeholder="Review month (e.g. May 2026)">'
+      +'<select class="dinp" id="mr_entity"><option value="Shared">Shared</option><option value="RCMS">RCMS</option><option value="NAE">NAE</option><option value="NurseBridge">NurseBridge</option><option value="CASE Clarity">CASE Clarity</option><option value="W4TWP">W4TWP</option></select>'
+      +'<select class="dinp" id="mr_status"><option value="Not started">Not started</option><option value="In Progress">In Progress</option><option value="Complete">Complete</option></select>'
+      +'<button class="dsbm" onclick="addMonthlyReview()">+ Add</button>'
+    +'</div>'
+    +'<div style="margin-top:.5rem"><input class="dinp" id="mr_notes" placeholder="Key notes / outcomes..." style="width:100%"></div>';
+}
+
+// ── QUARTERLY FOCUS PANEL ─────────────────────────────────────────
+function quarterlyFocusPanel() {
+  var rows = hqState.quarterlyFocuses.map(function(r,i){
+    return '<div class="pli"><div><div class="plt" style="font-weight:600">'+r.title+'</div><div class="plm">'+r.quarter+' · '+r.entity+' · '+r.status+'</div></div>'
+      +'<button onclick="delQuarterlyFocus('+i+')" style="font-size:11px;color:var(--t3);border:none;background:none;cursor:pointer"><i class="ti ti-x"></i></button></div>';
+  }).join('');
+
+  return '<div style="display:flex;flex-direction:column;gap:.5rem">'
+    + (rows || '<div class="cht">No quarterly focus items yet</div>')
+    +'</div>'
+    +'<div class="dadd" style="margin-top:.65rem">'
+      +'<input class="dinp" id="qf_title" placeholder="Strategic focus title">'
+      +'<select class="dinp" id="qf_quarter"><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select>'
+      +'<select class="dinp" id="qf_entity"><option value="Shared">Shared</option><option value="RCMS">RCMS</option><option value="NAE">NAE</option><option value="NurseBridge">NurseBridge</option><option value="CASE Clarity">CASE Clarity</option><option value="W4TWP">W4TWP</option></select>'
+      +'<button class="dsbm" onclick="addQuarterlyFocus()">+ Add</button>'
+    +'</div>'
+    +'<div style="margin-top:.5rem"><input class="dinp" id="qf_notes" placeholder="Notes / success metric..." style="width:100%"></div>';
+}
+
+// ── ADD / DELETE MONTHLY REVIEW ───────────────────────────────────
+window.addMonthlyReview = async function() {
+  const t = document.getElementById('mr_title');
+  const e = document.getElementById('mr_entity');
+  const s = document.getElementById('mr_status');
+  const n = document.getElementById('mr_notes');
+  if (!t || !t.value.trim()) return;
+  const entry = { title: t.value.trim(), entity: e ? e.value : 'Shared', status: s ? s.value : 'Not started', notes: n ? n.value.trim() : '' };
+  const saved = await dbInsert({
+    item_type: 'monthly_review',
+    title: entry.title,
+    status: entry.status,
+    body: entry.notes,
+    metadata: { entity: entry.entity, operational_notes: entry.notes }
+  });
+  if (saved) {
+    entry.id = saved.id;
+    foShowToast('Saved ✓', '#157272');
+    notionSync(saved.id);
+  }
+  hqState.monthlyReviews.unshift(entry);
+  if (t) t.value = '';
+  if (n) n.value = '';
+  renderWS();
+};
+
+window.delMonthlyReview = async function(i) {
+  const entry = hqState.monthlyReviews[i];
+  if (entry && entry.id) await dbDelete(entry.id);
+  hqState.monthlyReviews.splice(i, 1);
+  renderWS();
+};
+
+// ── ADD / DELETE QUARTERLY FOCUS ──────────────────────────────────
+window.addQuarterlyFocus = async function() {
+  const t = document.getElementById('qf_title');
+  const q = document.getElementById('qf_quarter');
+  const e = document.getElementById('qf_entity');
+  const n = document.getElementById('qf_notes');
+  if (!t || !t.value.trim()) return;
+  const entry = { title: t.value.trim(), quarter: q ? q.value : 'Q2', entity: e ? e.value : 'Shared', notes: n ? n.value.trim() : '' };
+  const saved = await dbInsert({
+    item_type: 'quarterly_focus',
+    title: entry.title,
+    body: entry.notes,
+    category: 'Strategy',
+    metadata: { entity: entry.entity, quarter: entry.quarter, notes: entry.notes }
+  });
+  if (saved) {
+    entry.id = saved.id;
+    foShowToast('Saved ✓', '#157272');
+    notionSync(saved.id);
+  }
+  hqState.quarterlyFocuses.unshift(entry);
+  if (t) t.value = '';
+  if (n) n.value = '';
+  renderWS();
+};
+
+window.delQuarterlyFocus = async function(i) {
+  const entry = hqState.quarterlyFocuses[i];
+  if (entry && entry.id) await dbDelete(entry.id);
+  hqState.quarterlyFocuses.splice(i, 1);
+  renderWS();
+};
 
 // ── START ─────────────────────────────────────────────────────────
 selE('hq');
