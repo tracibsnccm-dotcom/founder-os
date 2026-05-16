@@ -308,6 +308,12 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 /* ── TOAST ── */
 .fo-toast{position:fixed;bottom:1.5rem;right:1.5rem;padding:.75rem 1.25rem;border-radius:10px;font-size:13px;font-weight:500;color:#fff;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,.2);animation:toastIn .2s ease;pointer-events:none;max-width:320px;line-height:1.4}
 @keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── NOTION SYNC INDICATOR ── */
+.sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:.35rem;vertical-align:middle;flex-shrink:0}
+.sync-synced{background:#15803D}.sync-pending{background:#D97706}.sync-failed{background:#B91C1C}
+.sync-label{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-left:.2rem;vertical-align:middle}
+
 </style>
 </head>
 <body>
@@ -530,6 +536,35 @@ async function dbLoadAll() {
     return data || [];
   } catch(e) { console.warn('dbLoadAll:', e); return []; }
 }
+
+// ── NOTION SYNC ───────────────────────────────────────────────────
+const NOTION_SYNC_URL = 'https://agsaccycjzrtilhdaixu.supabase.co/functions/v1/notion-sync';
+const NOTION_SYNC_KEY = 'sb_publishable_Fm5nm-xrRlRM9CtUkEpVPA_RCYBhoPZ';
+
+async function notionSync(itemId) {
+  try {
+    const res = await fetch(NOTION_SYNC_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + NOTION_SYNC_KEY,
+        'apikey': NOTION_SYNC_KEY,
+      },
+      body: JSON.stringify({ item_id: itemId }),
+    });
+    const data = await res.json();
+    if (!data.success && data.status !== 'skipped') {
+      console.warn('Notion sync failed:', data.error);
+      foShowToast('Saved locally. Notion sync failed.', '#92400E');
+    }
+    return data;
+  } catch(e) {
+    console.warn('Notion sync error:', e);
+    foShowToast('Saved locally. Notion sync failed.', '#92400E');
+    return { success: false };
+  }
+}
+
 
 function foShowToast(msg, bg) {
   if (!document.body) return;
@@ -1081,7 +1116,10 @@ window.addD=async function(){
   const dateStr=MONS[d.getMonth()].slice(0,3)+' '+d.getDate();
   const entry={d:dateStr,t:t.value.trim(),cat:c.value,s:s.value,id:null};
   const saved=await dbInsert({item_type:'decision',title:entry.t,category:entry.cat,status:entry.s,body:dateStr});
-  if(saved)entry.id=saved.id;
+  if(saved){
+    entry.id=saved.id;
+    notionSync(saved.id);
+  }
   decisions.unshift(entry);
   const dl=document.getElementById('dlog');if(dl)dl.innerHTML=decisionLog();
 };
@@ -1112,10 +1150,12 @@ function wire(ti,di,ni,bi,li,itype,gx){
     const extra=gx?gx():'';
     let dbId=null;
     if(itype){
+      const syncable=['priority','blocker','monthly_review','quarterly_focus'];
       const saved=await dbInsert({item_type:itype,title:T.value.trim(),body:N.value.trim(),due_date:DD.value||null,metadata:extra?{badge:extra}:{}});
       if(saved){
         dbId=saved.id;
         foShowToast('Saved ✓','#157272');
+        if(syncable.includes(itype)) notionSync(saved.id);
       } else if(SB){
         foShowToast('Item added locally — save to Supabase failed. Check console.','#92400E');
       }
@@ -1179,7 +1219,7 @@ async function loadFromSupabase(){
   const decs=items.filter(i=>i.item_type==='decision');
   if(decs.length){
     decisions.length=0;
-    decs.reverse().forEach(i=>decisions.unshift({id:i.id,d:i.body||'',t:i.title||'',cat:i.category||'Operations',s:i.status||'Pending'}));
+    decs.reverse().forEach(i=>decisions.unshift({id:i.id,d:i.body||'',t:i.title||'',cat:i.category||'Operations',s:i.status||'Pending',notion_sync_status:i.notion_sync_status||'pending'}));
   }
 
   // Restore HQ editable state
