@@ -173,16 +173,16 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .tw-row{display:flex;align-items:flex-start;gap:.4rem;padding:.26rem 0;border-bottom:.5px solid rgba(0,0,0,.04)}
 .tw-row:last-child{border-bottom:none}
 .tw-num{font-size:var(--ts-xs);font-weight:700;color:var(--t3);min-width:16px;margin-top:3px;flex-shrink:0}
-.tw-edit{font-size:var(--ts-base);color:var(--t1);flex:1;outline:none;border-radius:4px;padding:1px 4px;min-width:20px;line-height:1.45}
+.tw-edit{font-size:var(--ts-base);color:var(--t1);flex:1;outline:none;border-radius:4px;padding:2px 6px;min-width:20px;line-height:1.45;border:.5px solid transparent;transition:border-color .12s,background .12s;cursor:text}
 .tw-edit:focus{background:rgba(0,0,0,.04)}
 .tw-edit:empty::before{content:attr(data-ph);color:var(--t3);font-style:italic}
-.tw-ent-edit{font-size:var(--ts-xs);color:var(--t3);outline:none;border-radius:4px;padding:1px 4px;min-width:20px;margin-top:3px;flex-shrink:0;max-width:80px;text-align:right}
+.tw-ent-edit{font-size:var(--ts-xs);color:var(--t3);outline:none;border-radius:4px;padding:2px 6px;min-width:20px;margin-top:3px;flex-shrink:0;max-width:90px;text-align:right;border:.5px solid transparent;transition:border-color .12s;cursor:text}
 .tw-ent-edit:focus{background:rgba(0,0,0,.04)}
 .tw-ent-edit:empty::before{content:attr(data-ph);color:var(--t3);font-style:italic}
 .tw-block{display:flex;align-items:flex-start;gap:.35rem;padding:.26rem 0;border-bottom:.5px solid rgba(0,0,0,.04)}
 .tw-block:last-child{border-bottom:none}
 .tw-block i{font-size:11px;color:#B91C1C;margin-top:3px;flex-shrink:0}
-.tw-block-edit{font-size:var(--ts-base);color:#B91C1C;flex:1;outline:none;border-radius:4px;padding:1px 4px;min-width:20px;line-height:1.45}
+.tw-block-edit{font-size:var(--ts-base);color:#B91C1C;flex:1;outline:none;border-radius:4px;padding:2px 6px;min-width:20px;line-height:1.45;border:.5px solid transparent;transition:border-color .12s,background .12s;cursor:text}
 .tw-block-edit:focus{background:rgba(180,0,0,.04)}
 .tw-block-edit:empty::before{content:attr(data-ph);color:#ECA0A0;font-style:italic}
 .tw-mil-edit{font-size:var(--ts-base);color:var(--t1);font-weight:500;outline:none;border-radius:4px;padding:1px 4px;width:100%}
@@ -333,6 +333,22 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .fo-submit{padding:.5rem 1.25rem;background:var(--dk);color:#fff;border:none;border-radius:var(--rad-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--ff)}
 .fo-submit:hover{background:#157272}
 
+
+.tw-edit:focus{border-color:var(--dk)!important;background:#fff!important;outline:none}
+.tw-block-edit:focus{border-color:#B91C1C!important;background:#fff!important;outline:none}
+.tw-ent-edit:focus{border-color:var(--dk)!important;color:var(--t2)!important;outline:none}
+.tw-edit:empty::before{content:attr(data-ph);color:var(--t3);font-style:italic;pointer-events:none}
+.tw-block-edit:empty::before{content:attr(data-ph);color:#ECA0A0;font-style:italic;pointer-events:none}
+.tw-ent-edit:empty::before{content:attr(data-ph);color:var(--t3);font-style:italic;pointer-events:none}
+.tw-add-row{display:flex;align-items:center;gap:.35rem;padding:.35rem 0;margin-top:.25rem;border-top:.5px dashed rgba(0,0,0,.08)}
+.tw-add-inp{font-size:12px;flex:1;border:.5px solid var(--bdr);border-radius:6px;padding:.28rem .5rem;background:var(--bg);color:var(--t1);font-family:var(--ff);outline:none}
+.tw-add-inp:focus{border-color:var(--dk)}
+.tw-add-btn{font-size:10px;padding:.26rem .6rem;border:.5px solid var(--bdr);border-radius:6px;background:var(--card);color:var(--t2);cursor:pointer;font-family:var(--ff);white-space:nowrap;flex-shrink:0}
+.tw-add-btn:hover{border-color:var(--dk);color:var(--t1)}
+.tw-del{font-size:10px;color:var(--t3);border:none;background:none;cursor:pointer;padding:1px;opacity:0;transition:opacity .12s;flex-shrink:0;line-height:1}
+.tw-row:hover .tw-del,.tw-block:hover .tw-del{opacity:1}
+.tw-del:hover{color:#B91C1C}
+.tw-hint{font-size:10px;color:var(--t3);font-style:italic;padding:.2rem 0}
 </style>
 </head>
 <body>
@@ -903,18 +919,32 @@ R.hq=function(){
       +'</div>';
   }).join('');
 
-  var prio=hqState.priorities.map(function(p,i){
-    return '<div class="tw-row"><span class="tw-num">'+(i+1)+'</span>'
-      +'<div class="tw-edit" contenteditable="true" data-ph="Add priority..." onblur="foSaveHQ(this,\'priority\','+i+')">'+p.text+'</div>'
-      +'<div class="tw-ent-edit" contenteditable="true" data-ph="Entity..." onblur="foSaveHQ(this,\'priority_ent\','+i+')">'+p.entity+'</div>'
+  var prio=(hqState.priorities.length?hqState.priorities.map(function(p,i){
+    return '<div class="tw-row">'
+      +'<span class="tw-num">'+(i+1)+'</span>'
+      +'<div class="tw-edit" contenteditable="true" data-ph="Click to edit..." onblur="foSaveHQ(this,\'priority\','+i+')">'+p.text+'</div>'
+      +'<div class="tw-ent-edit" contenteditable="true" data-ph="Entity" onblur="foSaveHQ(this,\'priority_ent\','+i+')">'+p.entity+'</div>'
+      +'<button class="tw-del" onclick="delPriority('+i+')" title="Remove"><i class="ti ti-x"></i></button>'
       +'</div>';
-  }).join('');
+  }).join(''):'<div class="tw-hint">No priorities — add one below</div>')
+  +'<div class="tw-add-row">'
+    +'<input class="tw-add-inp" id="tw-prio-inp" placeholder="Add priority..." onkeydown="if(event.key===\'Enter\'){event.preventDefault();addPriority()}">'
+    +'<input class="tw-add-inp" id="tw-prio-ent" placeholder="Entity" style="max-width:78px" onkeydown="if(event.key===\'Enter\'){event.preventDefault();addPriority()}">'
+    +'<button class="tw-add-btn" onclick="addPriority()">+ Add</button>'
+  +'</div>';
 
-  var blockers=hqState.blockers.map(function(b,i){
-    return '<div class="tw-block"><i class="ti ti-alert-triangle" style="font-size:11px;flex-shrink:0;margin-top:2px"></i>'
-      +'<div class="tw-block-edit" contenteditable="true" data-ph="Add blocker..." onblur="foSaveHQ(this,\'blocker\','+i+')">'+b+'</div>'
+  var blockers=(hqState.blockers.length?hqState.blockers.map(function(b,i){
+    var txt=typeof b==='string'?b:(b.text||b);
+    return '<div class="tw-block">'
+      +'<i class="ti ti-alert-triangle" style="font-size:11px;flex-shrink:0"></i>'
+      +'<div class="tw-block-edit" contenteditable="true" data-ph="Click to edit..." onblur="foSaveHQ(this,\'blocker\','+i+')">'+txt+'</div>'
+      +'<button class="tw-del" onclick="delBlocker('+i+')" title="Remove"><i class="ti ti-x"></i></button>'
       +'</div>';
-  }).join('');
+  }).join(''):'<div class="tw-hint">No blockers — add one below</div>')
+  +'<div class="tw-add-row">'
+    +'<input class="tw-add-inp" id="tw-block-inp" placeholder="Add blocker..." onkeydown="if(event.key===\'Enter\'){event.preventDefault();addBlocker()}">'
+    +'<button class="tw-add-btn" onclick="addBlocker()">+ Add</button>'
+  +'</div>'
 
   return '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.25rem">'
     +'<div class="hqm" style="background:#157272"><div class="hqm-l">Active campaigns</div><div class="hqm-v">2</div></div>'
@@ -1397,6 +1427,67 @@ async function loadFromSupabase(){
   });
 }
 
+
+
+// ── PRIORITY / BLOCKER ADD + DELETE ──────────────────────────────
+window.addPriority = async function() {
+  var inp = document.getElementById('tw-prio-inp');
+  var ent = document.getElementById('tw-prio-ent');
+  if (!inp || !inp.value.trim()) return;
+  var text = inp.value.trim();
+  var entity = (ent && ent.value.trim()) || 'Shared';
+  var idx = hqState.priorities.length;
+  hqState.priorities.push({ text: text, entity: entity });
+  inp.value = ''; if(ent) ent.value = '';
+  var d = new Date(); var day = d.getDay();
+  var ws = new Date(d); ws.setDate(d.getDate()-(day===0?6:day-1));
+  var saved = await dbUpsert('priority','hq_priority_'+idx,{
+    title: text,
+    status: 'In Progress',
+    category: 'Operations',
+    metadata: { entity: entity, week_start: ws.toISOString().slice(0,10), owner: 'Traci Johnson' }
+  });
+  if(saved && saved.id){ foShowToast('Priority saved ✓','#157272'); notionSync(saved.id); }
+  renderWS();
+};
+
+window.delPriority = async function(i) {
+  var p = hqState.priorities[i];
+  // Delete from Supabase by key
+  if(SB){
+    var res = await SB.from('founder_os_items').select('id').eq('item_type','priority').eq('entity_key','hq_priority_'+i).maybeSingle();
+    if(res && res.data && res.data.id) await dbDelete(res.data.id);
+  }
+  hqState.priorities.splice(i,1);
+  renderWS();
+};
+
+window.addBlocker = async function() {
+  var inp = document.getElementById('tw-block-inp');
+  if (!inp || !inp.value.trim()) return;
+  var text = inp.value.trim();
+  var idx = hqState.blockers.length;
+  hqState.blockers.push(text);
+  inp.value = '';
+  var saved = await dbUpsert('blocker','hq_blocker_'+idx,{
+    title: text,
+    status: 'In Progress',
+    category: 'Operations',
+    due_date: new Date().toISOString().slice(0,10),
+    metadata: { entity: 'Shared', severity: 'Medium', owner: 'Traci Johnson' }
+  });
+  if(saved && saved.id){ foShowToast('Blocker saved ✓','#157272'); notionSync(saved.id); }
+  renderWS();
+};
+
+window.delBlocker = async function(i) {
+  if(SB){
+    var res = await SB.from('founder_os_items').select('id').eq('item_type','blocker').eq('entity_key','hq_blocker_'+i).maybeSingle();
+    if(res && res.data && res.data.id) await dbDelete(res.data.id);
+  }
+  hqState.blockers.splice(i,1);
+  renderWS();
+};
 
 // ── MONTHLY EXECUTIVE REVIEW PANEL ───────────────────────────────
 function monthlyReviewPanel() {
