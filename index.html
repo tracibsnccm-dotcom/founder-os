@@ -472,47 +472,12 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 // SUPABASE — credentials stored in localStorage, never in code
 // ═══════════════════════════════════════════════════════════════
 let SB = null;
-
-async function foInitSupabase(url, key) {
-  if (!url || !key) return false;
-  try {
-    var client = supabase.createClient(url.trim(), key.trim());
-    // Actually test the connection with a real API call
-    var result = await client.from('founder_os_items').select('id').limit(1);
-    if (result.error && result.error.code !== 'PGRST116') {
-      // PGRST116 = table not found — still means auth worked
-      if (result.status === 401) {
-        console.error('Founder OS: API key rejected (401) — check your anon key');
-        SB = null;
-        return false;
-      }
-    }
-    SB = client;
-    console.log('Founder OS: Supabase connected and verified ✓');
-    return true;
-  } catch(e) {
-    console.error('Founder OS: Supabase connection failed', e);
-    SB = null;
-    return false;
-  }
+try {
+  SB = supabase.createClient('https://agsaccycjzrtilhdaixu.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnc2FjY3ljanpydGlsaGRhaXh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODg3OTIsImV4cCI6MjA5MjA2NDc5Mn0.Gq0gD4eN9gL5_iWnOGX1umy2Wsz9KKE1MW7FaYjHJek');
+  console.log('Founder OS: Supabase ready ✓');
+} catch(e) {
+  console.error('Founder OS: Supabase init failed', e);
 }
-
-// Try to initialize from localStorage on every load
-(async function() {
-  const url = localStorage.getItem('fo_supa_url');
-  const key = localStorage.getItem('fo_supa_key');
-  if (url && key) {
-    const ok = await foInitSupabase(url, key);
-    if (ok) {
-      console.log('Founder OS: auto-connected from saved credentials ✓');
-    } else {
-      console.error('Founder OS: saved credentials failed — open Settings to re-enter');
-      foShowToast('Supabase connection failed — open Settings to re-enter your key', '#B91C1C');
-    }
-  } else {
-    console.log('Founder OS: no credentials — open Settings to connect Supabase');
-  }
-})();
 
 // ── DB HELPERS ─────────────────────────────────────────────────
 async function dbInsert(item) {
