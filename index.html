@@ -1385,18 +1385,32 @@ async function loadFromSupabase(){
     decs.reverse().forEach(i=>decisions.unshift({id:i.id,d:i.body||'',t:i.title||'',cat:i.category||'Operations',s:i.status||'Pending',notion_sync_status:i.notion_sync_status||'pending'}));
   }
 
-  // Restore HQ editable state
-  items.filter(i=>i.item_type==='priority').forEach(i=>{
-    const idx=parseInt(i.entity_key.replace('hq_priority_',''));
-    if(hqState.priorities[idx]){
-      if(i.title)hqState.priorities[idx].text=i.title;
-      if(i.body)hqState.priorities[idx].entity=i.body;
-    }
-  });
-  items.filter(i=>i.item_type==='blocker').forEach(i=>{
-    const idx=parseInt(i.entity_key.replace('hq_blocker_',''));
-    if(hqState.blockers[idx]!==undefined&&i.title)hqState.blockers[idx]=i.title;
-  });
+  // Restore HQ priorities — rebuild entirely from Supabase
+  // Sort by entity_key index so order is preserved
+  var savedPriorities = items
+    .filter(i=>i.item_type==='priority' && i.entity_key && i.entity_key.startsWith('hq_priority_'))
+    .sort(function(a,b){
+      return parseInt(a.entity_key.replace('hq_priority_','')) - parseInt(b.entity_key.replace('hq_priority_',''));
+    });
+  if(savedPriorities.length > 0){
+    hqState.priorities = savedPriorities.map(function(i){
+      return {
+        text: i.title || '',
+        entity: (i.metadata && i.metadata.entity) || (i.body) || 'Shared',
+        dbKey: i.entity_key
+      };
+    });
+  }
+
+  // Restore HQ blockers — rebuild entirely from Supabase
+  var savedBlockers = items
+    .filter(i=>i.item_type==='blocker' && i.entity_key && i.entity_key.startsWith('hq_blocker_'))
+    .sort(function(a,b){
+      return parseInt(a.entity_key.replace('hq_blocker_','')) - parseInt(b.entity_key.replace('hq_blocker_',''));
+    });
+  if(savedBlockers.length > 0){
+    hqState.blockers = savedBlockers.map(function(i){ return i.title || ''; });
+  }
   const ms=items.find(i=>i.item_type==='milestone'&&i.entity_key==='hq_milestone');
   if(ms&&ms.title)hqState.milestone=ms.title;
 
