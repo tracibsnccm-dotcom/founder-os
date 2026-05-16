@@ -314,6 +314,25 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .sync-synced{background:#15803D}.sync-pending{background:#D97706}.sync-failed{background:#B91C1C}
 .sync-label{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-left:.2rem;vertical-align:middle}
 
+
+/* ── MODALS ── */
+.fo-modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.fo-modal-ov.open{display:flex}
+.fo-modal{background:var(--card);border-radius:var(--rad);width:min(640px,94vw);max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.18);display:flex;flex-direction:column}
+.fo-modal-hdr{padding:1.25rem 1.5rem 1rem;border-bottom:.5px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.fo-modal-title{font-size:15px;font-weight:600;color:var(--t1)}
+.fo-modal-x{width:28px;height:28px;border-radius:7px;border:.5px solid var(--bdr);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--t2);font-family:var(--ff)}
+.fo-modal-x:hover{background:var(--bg)}
+.fo-modal-body{padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:.65rem;flex:1}
+.fo-field{display:flex;flex-direction:column;gap:.28rem}
+.fo-label{font-size:11px;font-weight:500;color:var(--t2)}
+.fo-g2{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+.fo-modal-foot{padding:1rem 1.5rem;border-top:.5px solid var(--bdr);display:flex;justify-content:flex-end;gap:.5rem;flex-shrink:0}
+.fo-cancel{padding:.5rem 1rem;background:none;border:.5px solid var(--bdr);border-radius:var(--rad-sm);font-size:13px;color:var(--t2);cursor:pointer;font-family:var(--ff)}
+.fo-cancel:hover{background:var(--bg)}
+.fo-submit{padding:.5rem 1.25rem;background:var(--dk);color:#fff;border:none;border-radius:var(--rad-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--ff)}
+.fo-submit:hover{background:#157272}
+
 </style>
 </head>
 <body>
@@ -364,6 +383,67 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
   <div class="sd-foot">
     <button class="sd-cancel" onclick="closeSd()">Cancel</button>
     <button class="sd-save" onclick="saveSd()">Save &amp; connect</button>
+  </div>
+</div>
+
+
+<!-- Monthly Executive Review Modal -->
+<div class="fo-modal-ov" id="mr-modal" onclick="if(event.target===this)closeMRModal()">
+  <div class="fo-modal">
+    <div class="fo-modal-hdr">
+      <div class="fo-modal-title">Monthly Executive Review</div>
+      <button class="fo-modal-x" onclick="closeMRModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="fo-modal-body">
+      <div class="fo-g2">
+        <div class="fo-field"><label class="fo-label">Review month *</label><input class="sd-i" id="mr-title" placeholder="e.g. May 2026"></div>
+        <div class="fo-field"><label class="fo-label">Business entity</label><select class="sd-i" id="mr-entity"><option value="Shared">Shared</option><option value="RCMS">RCMS</option><option value="NAE">NAE</option><option value="NurseBridge">NurseBridge</option><option value="CASE Clarity">CASE Clarity</option><option value="W4TWP">W4TWP</option></select></div>
+      </div>
+      <div class="fo-g2">
+        <div class="fo-field"><label class="fo-label">Status</label><select class="sd-i" id="mr-status"><option value="Not started">Not started</option><option value="In Progress">In Progress</option><option value="Complete">Complete</option></select></div>
+      </div>
+      <div class="fo-field"><label class="fo-label">Campaign notes</label><textarea class="sd-i" id="mr-campaign" rows="2" style="resize:vertical;font-family:var(--ff)"></textarea></div>
+      <div class="fo-field"><label class="fo-label">Lead hygiene notes</label><textarea class="sd-i" id="mr-hygiene" rows="2" style="resize:vertical;font-family:var(--ff)"></textarea></div>
+      <div class="fo-field"><label class="fo-label">Pipeline notes</label><textarea class="sd-i" id="mr-pipeline" rows="2" style="resize:vertical;font-family:var(--ff)"></textarea></div>
+      <div class="fo-g2">
+        <div class="fo-field"><label class="fo-label">Content notes</label><textarea class="sd-i" id="mr-content" rows="2" style="resize:vertical;font-family:var(--ff)"></textarea></div>
+        <div class="fo-field"><label class="fo-label">Financial notes</label><textarea class="sd-i" id="mr-financial" rows="2" style="resize:vertical;font-family:var(--ff)"></textarea></div>
+      </div>
+      <div class="fo-field"><label class="fo-label">Operational notes</label><textarea class="sd-i" id="mr-ops" rows="2" style="resize:vertical;font-family:var(--ff)"></textarea></div>
+      <div class="fo-field"><label class="fo-label">Key decisions</label><textarea class="sd-i" id="mr-decisions" rows="2" style="resize:vertical;font-family:var(--ff)"></textarea></div>
+      <div class="fo-field"><label class="fo-label">Next month priorities</label><textarea class="sd-i" id="mr-next" rows="2" style="resize:vertical;font-family:var(--ff)"></textarea></div>
+    </div>
+    <div class="fo-modal-foot">
+      <button class="fo-cancel" onclick="closeMRModal()">Cancel</button>
+      <button class="fo-submit" onclick="submitMonthlyReview()">Save to Notion</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quarterly Focus Modal -->
+<div class="fo-modal-ov" id="qf-modal" onclick="if(event.target===this)closeQFModal()">
+  <div class="fo-modal">
+    <div class="fo-modal-hdr">
+      <div class="fo-modal-title">Quarterly Focus</div>
+      <button class="fo-modal-x" onclick="closeQFModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="fo-modal-body">
+      <div class="fo-field"><label class="fo-label">Strategic focus *</label><input class="sd-i" id="qf-title" placeholder="e.g. Scale NAE email campaigns to 25,000 contacts"></div>
+      <div class="fo-g2">
+        <div class="fo-field"><label class="fo-label">Quarter</label><select class="sd-i" id="qf-quarter"><option>Q1</option><option selected>Q2</option><option>Q3</option><option>Q4</option></select></div>
+        <div class="fo-field"><label class="fo-label">Business entity</label><select class="sd-i" id="qf-entity"><option value="Shared">Shared</option><option value="RCMS">RCMS</option><option value="NAE">NAE</option><option value="NurseBridge">NurseBridge</option><option value="CASE Clarity">CASE Clarity</option><option value="W4TWP">W4TWP</option></select></div>
+      </div>
+      <div class="fo-g2">
+        <div class="fo-field"><label class="fo-label">Category</label><select class="sd-i" id="qf-category"><option>Strategy</option><option>Marketing</option><option>Operations</option><option>Sales</option><option>Product</option><option>Financial</option><option>Technology</option></select></div>
+        <div class="fo-field"><label class="fo-label">Status</label><select class="sd-i" id="qf-status"><option value="Not started">Not started</option><option value="In Progress">In Progress</option><option value="Complete">Complete</option></select></div>
+      </div>
+      <div class="fo-field"><label class="fo-label">Success metric</label><input class="sd-i" id="qf-metric" placeholder="How will you measure success?"></div>
+      <div class="fo-field"><label class="fo-label">Notes</label><textarea class="sd-i" id="qf-notes" rows="3" style="resize:vertical;font-family:var(--ff)" placeholder="Context, initiatives, constraints..."></textarea></div>
+    </div>
+    <div class="fo-modal-foot">
+      <button class="fo-cancel" onclick="closeQFModal()">Cancel</button>
+      <button class="fo-submit" onclick="submitQuarterlyFocus()">Save to Notion</button>
+    </div>
   </div>
 </div>
 
@@ -1208,17 +1288,41 @@ window.foDelCard=async function(btn){
 
 window.foSaveHQ=async function(el,type,idx){
   const val=el.textContent.trim();
+  const today=new Date().toISOString().slice(0,10);
+  // Calculate week start (Monday)
+  const d=new Date();const day=d.getDay();
+  const weekStart=new Date(d);weekStart.setDate(d.getDate()-(day===0?6:day-1));
+  const weekStartStr=weekStart.toISOString().slice(0,10);
+
   if(type==='priority'){
     hqState.priorities[idx].text=val;
-    const saved=await dbUpsert('priority','hq_priority_'+idx,{title:val,body:hqState.priorities[idx].entity});
+    const p=hqState.priorities[idx];
+    const saved=await dbUpsert('priority','hq_priority_'+idx,{
+      title:val,
+      status:'In Progress',
+      category:'Operations',
+      metadata:{entity:p.entity||'Shared',week_start:weekStartStr,owner:'Traci Johnson'}
+    });
     if(saved&&saved.id) notionSync(saved.id);
   } else if(type==='priority_ent'){
     hqState.priorities[idx].entity=val;
-    const saved=await dbUpsert('priority','hq_priority_'+idx,{title:hqState.priorities[idx].text,body:val});
+    const p=hqState.priorities[idx];
+    const saved=await dbUpsert('priority','hq_priority_'+idx,{
+      title:p.text,
+      status:'In Progress',
+      category:'Operations',
+      metadata:{entity:val||'Shared',week_start:weekStartStr,owner:'Traci Johnson'}
+    });
     if(saved&&saved.id) notionSync(saved.id);
   } else if(type==='blocker'){
     hqState.blockers[idx]=val;
-    const saved=await dbUpsert('blocker','hq_blocker_'+idx,{title:val});
+    const saved=await dbUpsert('blocker','hq_blocker_'+idx,{
+      title:val,
+      status:'In Progress',
+      category:'Operations',
+      due_date:today,
+      metadata:{entity:'Shared',severity:'Medium',owner:'Traci Johnson'}
+    });
     if(saved&&saved.id) notionSync(saved.id);
   } else if(type==='milestone'){
     hqState.milestone=val;
@@ -1297,106 +1401,145 @@ async function loadFromSupabase(){
 // ── MONTHLY EXECUTIVE REVIEW PANEL ───────────────────────────────
 function monthlyReviewPanel() {
   var rows = hqState.monthlyReviews.map(function(r,i){
-    return '<div class="pli"><div><div class="plt" style="font-weight:600">'+r.title+'</div><div class="plm">'+r.entity+' · '+r.status+'</div></div>'
-      +'<button onclick="delMonthlyReview('+i+')" style="font-size:11px;color:var(--t3);border:none;background:none;cursor:pointer"><i class="ti ti-x"></i></button></div>';
+    var sc=r.notion_sync_status==='synced'?'sync-synced':r.notion_sync_status==='failed'?'sync-failed':'sync-pending';
+    return '<div class="pli"><div><div class="plt" style="font-weight:600">'+r.title+'</div>'
+      +'<div class="plm">'+r.entity+' &middot; '+r.status+'</div></div>'
+      +'<div style="display:flex;align-items:center;gap:.4rem">'
+      +'<span class="sync-dot '+sc+'" title="'+(r.notion_sync_status||'pending')+'"></span>'
+      +'<button onclick="delMonthlyReview('+i+')" style="font-size:11px;color:var(--t3);border:none;background:none;cursor:pointer"><i class="ti ti-x"></i></button>'
+      +'</div></div>';
   }).join('');
-
-  return '<div style="display:flex;flex-direction:column;gap:.5rem">'
-    + (rows || '<div class="cht">No reviews yet</div>')
+  return '<div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.65rem">'
+    +(rows||'<div class="cht">No monthly reviews yet</div>')
     +'</div>'
-    +'<div class="dadd" style="margin-top:.65rem">'
-      +'<input class="dinp" id="mr_title" placeholder="Review month (e.g. May 2026)">'
-      +'<select class="dinp" id="mr_entity"><option value="Shared">Shared</option><option value="RCMS">RCMS</option><option value="NAE">NAE</option><option value="NurseBridge">NurseBridge</option><option value="CASE Clarity">CASE Clarity</option><option value="W4TWP">W4TWP</option></select>'
-      +'<select class="dinp" id="mr_status"><option value="Not started">Not started</option><option value="In Progress">In Progress</option><option value="Complete">Complete</option></select>'
-      +'<button class="dsbm" onclick="addMonthlyReview()">+ Add</button>'
-    +'</div>'
-    +'<div style="margin-top:.5rem"><input class="dinp" id="mr_notes" placeholder="Key notes / outcomes..." style="width:100%"></div>';
+    +'<button class="dsbm" onclick="window.openMRModal()" style="width:100%">+ Add Monthly Review</button>';
 }
 
 // ── QUARTERLY FOCUS PANEL ─────────────────────────────────────────
 function quarterlyFocusPanel() {
   var rows = hqState.quarterlyFocuses.map(function(r,i){
-    return '<div class="pli"><div><div class="plt" style="font-weight:600">'+r.title+'</div><div class="plm">'+r.quarter+' · '+r.entity+' · '+r.status+'</div></div>'
-      +'<button onclick="delQuarterlyFocus('+i+')" style="font-size:11px;color:var(--t3);border:none;background:none;cursor:pointer"><i class="ti ti-x"></i></button></div>';
+    var sc=r.notion_sync_status==='synced'?'sync-synced':r.notion_sync_status==='failed'?'sync-failed':'sync-pending';
+    return '<div class="pli"><div><div class="plt" style="font-weight:600">'+r.title+'</div>'
+      +'<div class="plm">'+r.quarter+' &middot; '+r.entity+'</div></div>'
+      +'<div style="display:flex;align-items:center;gap:.4rem">'
+      +'<span class="sync-dot '+sc+'" title="'+(r.notion_sync_status||'pending')+'"></span>'
+      +'<button onclick="delQuarterlyFocus('+i+')" style="font-size:11px;color:var(--t3);border:none;background:none;cursor:pointer"><i class="ti ti-x"></i></button>'
+      +'</div></div>';
   }).join('');
-
-  return '<div style="display:flex;flex-direction:column;gap:.5rem">'
-    + (rows || '<div class="cht">No quarterly focus items yet</div>')
+  return '<div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.65rem">'
+    +(rows||'<div class="cht">No quarterly focus items yet</div>')
     +'</div>'
-    +'<div class="dadd" style="margin-top:.65rem">'
-      +'<input class="dinp" id="qf_title" placeholder="Strategic focus title">'
-      +'<select class="dinp" id="qf_quarter"><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select>'
-      +'<select class="dinp" id="qf_entity"><option value="Shared">Shared</option><option value="RCMS">RCMS</option><option value="NAE">NAE</option><option value="NurseBridge">NurseBridge</option><option value="CASE Clarity">CASE Clarity</option><option value="W4TWP">W4TWP</option></select>'
-      +'<button class="dsbm" onclick="addQuarterlyFocus()">+ Add</button>'
-    +'</div>'
-    +'<div style="margin-top:.5rem"><input class="dinp" id="qf_notes" placeholder="Notes / success metric..." style="width:100%"></div>';
+    +'<button class="dsbm" onclick="window.openQFModal()" style="width:100%">+ Add Quarterly Focus</button>';
 }
 
 // ── ADD / DELETE MONTHLY REVIEW ───────────────────────────────────
-window.addMonthlyReview = async function() {
-  const t = document.getElementById('mr_title');
-  const e = document.getElementById('mr_entity');
-  const s = document.getElementById('mr_status');
-  const n = document.getElementById('mr_notes');
-  if (!t || !t.value.trim()) return;
-  const entry = { title: t.value.trim(), entity: e ? e.value : 'Shared', status: s ? s.value : 'Not started', notes: n ? n.value.trim() : '' };
-  const saved = await dbInsert({
+window.openMRModal = function() {
+  document.getElementById('mr-modal').style.display='flex';
+};
+window.closeMRModal = function() {
+  document.getElementById('mr-modal').style.display='none';
+};
+window.submitMonthlyReview = async function() {
+  var f = function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  var title = f('mr-title');
+  if(!title){foShowToast('Enter a review month','#92400E');return;}
+  var entry = {
+    title: title,
+    entity: f('mr-entity')||'Shared',
+    status: f('mr-status')||'Not started',
+    notion_sync_status: 'pending'
+  };
+  var saved = await dbInsert({
     item_type: 'monthly_review',
     title: entry.title,
     status: entry.status,
-    body: entry.notes,
-    metadata: { entity: entry.entity, operational_notes: entry.notes }
+    body: f('mr-ops'),
+    metadata: {
+      entity: entry.entity,
+      campaign_notes: f('mr-campaign'),
+      lead_hygiene_notes: f('mr-hygiene'),
+      pipeline_notes: f('mr-pipeline'),
+      content_notes: f('mr-content'),
+      financial_notes: f('mr-financial'),
+      operational_notes: f('mr-ops'),
+      key_decisions: f('mr-decisions'),
+      next_month_priorities: f('mr-next')
+    }
   });
-  if (saved) {
-    entry.id = saved.id;
-    foShowToast('Saved ✓', '#157272');
-    notionSync(saved.id);
+  if(saved){
+    entry.id=saved.id;
+    foShowToast('Saved ✓','#157272');
+    var syncResult = await notionSync(saved.id);
+    if(syncResult&&syncResult.success) entry.notion_sync_status='synced';
+    else if(saved.id) entry.notion_sync_status='failed';
   }
   hqState.monthlyReviews.unshift(entry);
-  if (t) t.value = '';
-  if (n) n.value = '';
+  closeMRModal();
+  // Clear fields
+  ['mr-title','mr-campaign','mr-hygiene','mr-pipeline','mr-content','mr-financial','mr-ops','mr-decisions','mr-next'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.value='';
+  });
   renderWS();
 };
-
 window.delMonthlyReview = async function(i) {
-  const entry = hqState.monthlyReviews[i];
-  if (entry && entry.id) await dbDelete(entry.id);
-  hqState.monthlyReviews.splice(i, 1);
+  var entry=hqState.monthlyReviews[i];
+  if(entry&&entry.id) await dbDelete(entry.id);
+  hqState.monthlyReviews.splice(i,1);
   renderWS();
 };
 
 // ── ADD / DELETE QUARTERLY FOCUS ──────────────────────────────────
-window.addQuarterlyFocus = async function() {
-  const t = document.getElementById('qf_title');
-  const q = document.getElementById('qf_quarter');
-  const e = document.getElementById('qf_entity');
-  const n = document.getElementById('qf_notes');
-  if (!t || !t.value.trim()) return;
-  const entry = { title: t.value.trim(), quarter: q ? q.value : 'Q2', entity: e ? e.value : 'Shared', notes: n ? n.value.trim() : '' };
-  const saved = await dbInsert({
+window.openQFModal = function() {
+  document.getElementById('qf-modal').style.display='flex';
+};
+window.closeQFModal = function() {
+  document.getElementById('qf-modal').style.display='none';
+};
+window.submitQuarterlyFocus = async function() {
+  var f = function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  var title = f('qf-title');
+  if(!title){foShowToast('Enter a strategic focus','#92400E');return;}
+  var entry = {
+    title: title,
+    quarter: f('qf-quarter')||'Q2',
+    entity: f('qf-entity')||'Shared',
+    status: f('qf-status')||'Not started',
+    notion_sync_status: 'pending'
+  };
+  var saved = await dbInsert({
     item_type: 'quarterly_focus',
     title: entry.title,
-    body: entry.notes,
-    category: 'Strategy',
-    metadata: { entity: entry.entity, quarter: entry.quarter, notes: entry.notes }
+    status: entry.status,
+    category: f('qf-category')||'Strategy',
+    body: f('qf-notes'),
+    metadata: {
+      entity: entry.entity,
+      quarter: entry.quarter,
+      success_metric: f('qf-metric'),
+      notes: f('qf-notes')
+    }
   });
-  if (saved) {
-    entry.id = saved.id;
-    foShowToast('Saved ✓', '#157272');
-    notionSync(saved.id);
+  if(saved){
+    entry.id=saved.id;
+    foShowToast('Saved ✓','#157272');
+    var syncResult = await notionSync(saved.id);
+    if(syncResult&&syncResult.success) entry.notion_sync_status='synced';
+    else if(saved.id) entry.notion_sync_status='failed';
   }
   hqState.quarterlyFocuses.unshift(entry);
-  if (t) t.value = '';
-  if (n) n.value = '';
+  closeQFModal();
+  ['qf-title','qf-metric','qf-notes'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.value='';
+  });
+  renderWS();
+};
+window.delQuarterlyFocus = async function(i) {
+  var entry=hqState.quarterlyFocuses[i];
+  if(entry&&entry.id) await dbDelete(entry.id);
+  hqState.quarterlyFocuses.splice(i,1);
   renderWS();
 };
 
-window.delQuarterlyFocus = async function(i) {
-  const entry = hqState.quarterlyFocuses[i];
-  if (entry && entry.id) await dbDelete(entry.id);
-  hqState.quarterlyFocuses.splice(i, 1);
-  renderWS();
-};
 
 // ── START ─────────────────────────────────────────────────────────
 selE('hq');
