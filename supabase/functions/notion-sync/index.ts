@@ -184,6 +184,7 @@ function buildProperties(item: Record<string, unknown>, type: string): object {
       "Success Metric": { rich_text: richText(meta.success_metric) },
       "Status": { status: { name: mapStatus(String(item.status || "")) } },
       "Notes": { rich_text: richText(item.body || meta.notes) },
+      "Date Added": { date: { start: String(item.created_at ? String(item.created_at).slice(0,10) : new Date().toISOString().slice(0,10)) } },
     };
 
     default: throw new Error(`Unknown item type: ${type}`);
