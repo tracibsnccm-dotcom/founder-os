@@ -768,7 +768,11 @@ function decisionLog(lim){
   const stats=['Complete','Pending','Review'];
   const items=lim?decisions.slice(0,lim):decisions;
   if(!items.length)return`<div class="empty"><i class="ti ti-clipboard"></i><div class="empty-t">No decisions logged</div><div class="empty-s">Track strategic decisions as you make them</div></div>`;
-  const rows=items.map((d,i)=>`<div class="dentry"><span class="ddate">${d.d}</span><span class="dtext" title="${d.t}">${d.t}</span><span class="dcat">${d.cat}</span>${bdg(d.s)}<button class="ddel" onclick="delD(${i})"><i class="ti ti-x"></i></button></div>`).join('');
+  const rows=items.map((d,i)=>{
+  const sc=d.notion_sync_status==='synced'?'sync-synced':d.notion_sync_status==='failed'?'sync-failed':'sync-pending';
+  const tip=d.notion_sync_status==='synced'?'Synced to Notion':d.notion_sync_status==='failed'?'Notion sync failed':'Pending Notion sync';
+  return `<div class="dentry"><span class="ddate">${d.d}</span><span class="dtext" title="${d.t}">${d.t}</span><span class="dcat">${d.cat}</span>${bdg(d.s)}<span class="sync-dot ${sc}" title="${tip}"></span><button class="ddel" onclick="delD(${i})"><i class="ti ti-x"></i></button></div>`;
+}).join('');
   if(lim)return rows;
   return rows+`<div class="dadd"><input class="dinp" id="da_t" placeholder="Decision..."><select class="dinp" id="da_c">${cats.map(c=>`<option>${c}</option>`).join('')}</select><select class="dinp" id="da_s">${stats.map(s=>`<option>${s}</option>`).join('')}</select><button class="dsbm" onclick="addD()">+ Add</button></div>`;
 }
@@ -1167,7 +1171,7 @@ function wire(ti,di,ni,bi,li,itype,gx){
 }
 wire('bt','bd','bn','ba','bl','brain_dump');
 wire('pt','pd','pn','pa','pl','parking_lot');
-wire('tt2','td','tn','ta3','tl3',()=>{const v=document.getElementById('tc').value,m=TRMAP[v];return m?`<span class="trbg ${m.c}">${m.l}</span>`:''});
+wire('tt2','td','tn','ta3','tl3','triage',()=>{const v=document.getElementById('tc').value,m=TRMAP[v];return m?`<span class="trbg ${m.c}">${m.l}</span>`:''});
 
 
 window.foShowToast = foShowToast;
@@ -1184,13 +1188,16 @@ window.foSaveHQ=async function(el,type,idx){
   const val=el.textContent.trim();
   if(type==='priority'){
     hqState.priorities[idx].text=val;
-    await dbUpsert('priority','hq_priority_'+idx,{title:val,body:hqState.priorities[idx].entity});
+    const saved=await dbUpsert('priority','hq_priority_'+idx,{title:val,body:hqState.priorities[idx].entity});
+    if(saved&&saved.id) notionSync(saved.id);
   } else if(type==='priority_ent'){
     hqState.priorities[idx].entity=val;
-    await dbUpsert('priority','hq_priority_'+idx,{title:hqState.priorities[idx].text,body:val});
+    const saved=await dbUpsert('priority','hq_priority_'+idx,{title:hqState.priorities[idx].text,body:val});
+    if(saved&&saved.id) notionSync(saved.id);
   } else if(type==='blocker'){
     hqState.blockers[idx]=val;
-    await dbUpsert('blocker','hq_blocker_'+idx,{title:val});
+    const saved=await dbUpsert('blocker','hq_blocker_'+idx,{title:val});
+    if(saved&&saved.id) notionSync(saved.id);
   } else if(type==='milestone'){
     hqState.milestone=val;
     await dbUpsert('milestone','hq_milestone',{title:val});
