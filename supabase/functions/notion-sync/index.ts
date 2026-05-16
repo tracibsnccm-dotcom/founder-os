@@ -137,7 +137,7 @@ function buildProperties(item: Record<string, unknown>, type: string): object {
       "Decision Rationale": { rich_text: richText(item.body) },
       "Expected Outcome": { rich_text: richText(meta.expected_outcome) },
       "Notes": { rich_text: richText(meta.notes) },
-      ...(item.due_date ? { "Decision Date": { date: { start: String(item.due_date) } } } : {}),
+      "Decision Date": { date: { start: String(item.due_date || (item.created_at ? String(item.created_at).slice(0,10) : new Date().toISOString().slice(0,10))) } },
       ...(meta.revisit_date ? { "Revisit Date": { date: { start: String(meta.revisit_date) } } } : {}),
     };
 
