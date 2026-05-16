@@ -1450,20 +1450,23 @@ window.addPriority = async function() {
   if (!inp || !inp.value.trim()) return;
   var text = inp.value.trim();
   var entity = (ent && ent.value.trim()) || 'Shared';
-  var idx = hqState.priorities.length;
-  hqState.priorities.push({ text: text, entity: entity });
-  inp.value = ''; if(ent) ent.value = '';
+  var key = 'hq_priority_' + Date.now();
+  inp.value = ''; if (ent) ent.value = '';
   var d = new Date(); var day = d.getDay();
-  var ws = new Date(d); ws.setDate(d.getDate()-(day===0?6:day-1));
-  var saved = await dbUpsert('priority','hq_priority_'+idx,{
-    title: text,
-    status: 'In Progress',
-    category: 'Operations',
+  var ws = new Date(d); ws.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+  var saved = await dbUpsert('priority', key, {
+    title: text, status: 'In Progress', category: 'Operations',
     metadata: { entity: entity, week_start: ws.toISOString().slice(0,10), owner: 'Traci Johnson' }
   });
-  if(saved && saved.id){ foShowToast('Priority saved ✓','#157272'); notionSync(saved.id); }
-  renderWS();
-};
+  if (saved && saved.id) {
+    hqState.priorities.push({ text: text, entity: entity, dbKey: key });
+    foShowToast('Priority saved ✓', '#157272');
+    notionSync(saved.id);
+    renderWS();
+  } else {
+    foShowToast('Save failed — check console', '#B91C1C');
+  }
+}
 
 window.delPriority = async function(i) {
   var p = hqState.priorities[i];
@@ -1480,19 +1483,22 @@ window.addBlocker = async function() {
   var inp = document.getElementById('tw-block-inp');
   if (!inp || !inp.value.trim()) return;
   var text = inp.value.trim();
-  var idx = hqState.blockers.length;
-  hqState.blockers.push(text);
+  var key = 'hq_blocker_' + Date.now();
   inp.value = '';
-  var saved = await dbUpsert('blocker','hq_blocker_'+idx,{
-    title: text,
-    status: 'In Progress',
-    category: 'Operations',
+  var saved = await dbUpsert('blocker', key, {
+    title: text, status: 'In Progress', category: 'Operations',
     due_date: new Date().toISOString().slice(0,10),
     metadata: { entity: 'Shared', severity: 'Medium', owner: 'Traci Johnson' }
   });
-  if(saved && saved.id){ foShowToast('Blocker saved ✓','#157272'); notionSync(saved.id); }
-  renderWS();
-};
+  if (saved && saved.id) {
+    hqState.blockers.push(text);
+    foShowToast('Blocker saved ✓', '#157272');
+    notionSync(saved.id);
+    renderWS();
+  } else {
+    foShowToast('Save failed — check console', '#B91C1C');
+  }
+}
 
 window.delBlocker = async function(i) {
   if(SB){
