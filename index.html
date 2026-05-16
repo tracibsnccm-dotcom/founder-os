@@ -463,25 +463,45 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 // ═══════════════════════════════════════════════════════════════
 let SB = null;
 
-function foInitSupabase(url, key) {
+async function foInitSupabase(url, key) {
   if (!url || !key) return false;
   try {
-    SB = supabase.createClient(url.trim(), key.trim());
-    console.log('Founder OS: Supabase connected ✓');
+    var client = supabase.createClient(url.trim(), key.trim());
+    // Actually test the connection with a real API call
+    var result = await client.from('founder_os_items').select('id').limit(1);
+    if (result.error && result.error.code !== 'PGRST116') {
+      // PGRST116 = table not found — still means auth worked
+      if (result.status === 401) {
+        console.error('Founder OS: API key rejected (401) — check your anon key');
+        SB = null;
+        return false;
+      }
+    }
+    SB = client;
+    console.log('Founder OS: Supabase connected and verified ✓');
     return true;
   } catch(e) {
-    console.error('Founder OS: Supabase init failed', e);
+    console.error('Founder OS: Supabase connection failed', e);
     SB = null;
     return false;
   }
 }
 
 // Try to initialize from localStorage on every load
-(function() {
+(async function() {
   const url = localStorage.getItem('fo_supa_url');
   const key = localStorage.getItem('fo_supa_key');
-  if (url && key) foInitSupabase(url, key);
-  else console.log('Founder OS: no credentials — open Settings > Supabase to connect');
+  if (url && key) {
+    const ok = await foInitSupabase(url, key);
+    if (ok) {
+      console.log('Founder OS: auto-connected from saved credentials ✓');
+    } else {
+      console.error('Founder OS: saved credentials failed — open Settings to re-enter');
+      foShowToast('Supabase connection failed — open Settings to re-enter your key', '#B91C1C');
+    }
+  } else {
+    console.log('Founder OS: no credentials — open Settings to connect Supabase');
+  }
 })();
 
 // ── DB HELPERS ─────────────────────────────────────────────────
@@ -1050,7 +1070,7 @@ window.saveSd=async function(){
     if(url&&key){
       localStorage.setItem('fo_supa_url',url);
       localStorage.setItem('fo_supa_key',key);
-      const ok=foInitSupabase(url,key);
+      const ok=await foInitSupabase(url,key);
       const status=document.getElementById('fo-sb-status');
       if(ok){
         if(status){status.textContent='Connected ✓';status.style.background='#DCFCE7';status.style.color='#15803D';}
@@ -1060,7 +1080,7 @@ window.saveSd=async function(){
         return;
       } else {
         if(status){status.textContent='Connection failed';status.style.background='#FEE2E2';status.style.color='#B91C1C';}
-        foShowToast('Could not connect to Supabase — check your URL and key','#B91C1C');
+        foShowToast('Connection failed (401) — your anon key is wrong. Copy it fresh from Supabase → Settings → API','#B91C1C');
         return;
       }
     } else if(!url&&!key){
