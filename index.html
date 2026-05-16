@@ -304,6 +304,10 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
   .wsc{padding:1.1rem}
   .sd-drw{width:100%;right:-100%}
 }
+
+/* ── TOAST ── */
+.fo-toast{position:fixed;bottom:1.5rem;right:1.5rem;padding:.75rem 1.25rem;border-radius:10px;font-size:13px;font-weight:500;color:#fff;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,.2);animation:toastIn .2s ease;pointer-events:none;max-width:320px;line-height:1.4}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
@@ -332,9 +336,18 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
       <div class="sd-f"><label>Verified contacts</label><input class="sd-i" id="sk5" type="text" placeholder="e.g. 8,400"></div>
     </div>
   </div>
+  <div>
+      <div class="sd-sec" style="display:flex;align-items:center;justify-content:space-between">
+        Supabase connection
+        <span id="fo-sb-status" style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:#F3F4F6;color:#6B7280">Not connected</span>
+      </div>
+      <div class="sd-f"><label>Project URL</label><input class="sd-i" id="fo-sb-url" type="text" placeholder="https://xxxx.supabase.co"></div>
+      <div class="sd-f"><label>Anon / public key</label><input class="sd-i" id="fo-sb-key" type="password" placeholder="eyJh..."></div>
+      <div style="font-size:10px;color:var(--t3);margin-top:-.4rem;line-height:1.5">Found in Supabase → Settings → API. The anon key is safe to store here.</div>
+    </div>
   <div class="sd-foot">
     <button class="sd-cancel" onclick="closeSd()">Cancel</button>
-    <button class="sd-save" onclick="saveSd()">Update</button>
+    <button class="sd-save" onclick="saveSd()">Save &amp; connect</button>
   </div>
 </div>
 
@@ -446,31 +459,47 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 // ── CONSTANTS ────────────────────────────────────────────────────
 
 // ═══════════════════════════════════════════════════════════════
-// SUPABASE CONFIG — paste your credentials here
+// SUPABASE — credentials stored in localStorage, never in code
 // ═══════════════════════════════════════════════════════════════
-const SUPA_URL = '';  // e.g. https://xxxx.supabase.co
-const SUPA_KEY = '';  // your anon/public key
-
 let SB = null;
-try {
-  if (SUPA_URL && SUPA_KEY && typeof supabase !== 'undefined') {
-    SB = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+function foInitSupabase(url, key) {
+  if (!url || !key) return false;
+  try {
+    SB = supabase.createClient(url.trim(), key.trim());
     console.log('Founder OS: Supabase connected ✓');
-  } else {
-    console.log('Founder OS: running in local-only mode (no Supabase credentials)');
+    return true;
+  } catch(e) {
+    console.error('Founder OS: Supabase init failed', e);
+    SB = null;
+    return false;
   }
-} catch(e) { console.warn('Founder OS: Supabase init failed', e); }
+}
+
+// Try to initialize from localStorage on every load
+(function() {
+  const url = localStorage.getItem('fo_supa_url');
+  const key = localStorage.getItem('fo_supa_key');
+  if (url && key) foInitSupabase(url, key);
+  else console.log('Founder OS: no credentials — open Settings > Supabase to connect');
+})();
 
 // ── DB HELPERS ─────────────────────────────────────────────────
 async function dbInsert(item) {
-  if (!SB) return null;
+  if (!SB) {
+    console.warn('Founder OS: Supabase not connected — open Settings to add credentials');
+    return null;
+  }
   try {
-    const { data, error } = await SB.from('founder_os_items')
-      .insert({ ...item, updated_at: new Date().toISOString() })
-      .select().single();
+    const row = { ...item, updated_at: new Date().toISOString() };
+    const { data, error } = await SB.from('founder_os_items').insert(row).select().single();
     if (error) throw error;
     return data;
-  } catch(e) { console.warn('dbInsert:', e); return null; }
+  } catch(e) {
+    console.error('Founder OS dbInsert failed:', e);
+    foShowToast('Save failed: ' + (e.message||e), '#B91C1C');
+    return null;
+  }
 }
 
 async function dbUpsert(type, key, fields) {
@@ -483,7 +512,10 @@ async function dbUpsert(type, key, fields) {
       ).select().single();
     if (error) throw error;
     return data;
-  } catch(e) { console.warn('dbUpsert:', e); return null; }
+  } catch(e) {
+    console.error('Founder OS dbUpsert failed:', type, key, e);
+    return null;
+  }
 }
 
 async function dbDelete(id) {
@@ -503,6 +535,18 @@ async function dbLoadAll() {
     return data || [];
   } catch(e) { console.warn('dbLoadAll:', e); return []; }
 }
+
+function foShowToast(msg, bg) {
+  if (!document.body) return;
+  var t = document.createElement('div');
+  t.className = 'fo-toast';
+  t.style.background = bg || '#111827';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){ if(t.parentNode) t.remove(); }, 3500);
+}
+
+
 
 const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONS=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -969,6 +1013,16 @@ document.addEventListener('click',function(e){
 // ── SETTINGS ──────────────────────────────────────────────────────
 window.openSd=function(){
   kpiData.forEach((k,i)=>{const el=document.getElementById('sk'+i);if(el)el.value=k.v;});
+  // Populate Supabase fields
+  const urlEl=document.getElementById('fo-sb-url');
+  const keyEl=document.getElementById('fo-sb-key');
+  const status=document.getElementById('fo-sb-status');
+  if(urlEl) urlEl.value=localStorage.getItem('fo_supa_url')||'';
+  if(keyEl) keyEl.value=localStorage.getItem('fo_supa_key')||'';
+  if(status){
+    if(SB){status.textContent='Connected ✓';status.style.background='#DCFCE7';status.style.color='#15803D';}
+    else{status.textContent='Not connected';status.style.background='#F3F4F6';status.style.color='#6B7280';}
+  }
   document.getElementById('sd-ov').classList.add('open');
   document.getElementById('sd-drw').classList.add('open');
 };
@@ -976,7 +1030,8 @@ window.closeSd=function(){
   document.getElementById('sd-ov').classList.remove('open');
   document.getElementById('sd-drw').classList.remove('open');
 };
-window.saveSd=function(){
+window.saveSd=async function(){
+  // Save KPI values
   kpiData.forEach((k,i)=>{
     const el=document.getElementById('sk'+i);
     if(el&&el.value){
@@ -986,6 +1041,35 @@ window.saveSd=function(){
       dbUpsert('kpi','kpi_'+i,{title:k.k,body:k.v});
     }
   });
+  // Save + connect Supabase credentials
+  const urlEl=document.getElementById('fo-sb-url');
+  const keyEl=document.getElementById('fo-sb-key');
+  if(urlEl&&keyEl){
+    const url=urlEl.value.trim();
+    const key=keyEl.value.trim();
+    if(url&&key){
+      localStorage.setItem('fo_supa_url',url);
+      localStorage.setItem('fo_supa_key',key);
+      const ok=foInitSupabase(url,key);
+      const status=document.getElementById('fo-sb-status');
+      if(ok){
+        if(status){status.textContent='Connected ✓';status.style.background='#DCFCE7';status.style.color='#15803D';}
+        foShowToast('Supabase connected! Loading your data...','#15803D');
+        closeSd();
+        await loadFromSupabase();
+        return;
+      } else {
+        if(status){status.textContent='Connection failed';status.style.background='#FEE2E2';status.style.color='#B91C1C';}
+        foShowToast('Could not connect to Supabase — check your URL and key','#B91C1C');
+        return;
+      }
+    } else if(!url&&!key){
+      // Cleared — disconnect
+      localStorage.removeItem('fo_supa_url');
+      localStorage.removeItem('fo_supa_key');
+      SB=null;
+    }
+  }
   closeSd();
 };
 
@@ -1029,7 +1113,12 @@ function wire(ti,di,ni,bi,li,itype,gx){
     let dbId=null;
     if(itype){
       const saved=await dbInsert({item_type:itype,title:T.value.trim(),body:N.value.trim(),due_date:DD.value||null,metadata:extra?{badge:extra}:{}});
-      if(saved)dbId=saved.id;
+      if(saved){
+        dbId=saved.id;
+        foShowToast('Saved ✓','#157272');
+      } else if(SB){
+        foShowToast('Item added locally — save to Supabase failed. Check console.','#92400E');
+      }
     }
     L.appendChild(mkC(T.value.trim(),DD.value,N.value.trim(),extra,dbId));
     T.value='';N.value='';DD.value=tds();
@@ -1040,6 +1129,8 @@ wire('bt','bd','bn','ba','bl','brain_dump');
 wire('pt','pd','pn','pa','pl','parking_lot');
 wire('tt2','td','tn','ta3','tl3',()=>{const v=document.getElementById('tc').value,m=TRMAP[v];return m?`<span class="trbg ${m.c}">${m.l}</span>`:''});
 
+
+window.foShowToast = foShowToast;
 
 // ── SUPABASE-BACKED FUNCTIONS ─────────────────────────────────
 window.foDelCard=async function(btn){
@@ -1067,8 +1158,9 @@ window.foSaveHQ=async function(el,type,idx){
 };
 
 async function loadFromSupabase(){
+  foShowToast('Loading saved data...','#157272');
   const items=await dbLoadAll();
-  if(!items||!items.length)return;
+  if(!items||!items.length){foShowToast('No saved data found','#6B7280');return;}
 
   // Restore SOP statuses
   items.filter(i=>i.item_type==='sop_status').forEach(i=>{
