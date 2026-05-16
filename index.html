@@ -342,8 +342,18 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
         <span id="fo-sb-status" style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:#F3F4F6;color:#6B7280">Not connected</span>
       </div>
       <div class="sd-f"><label>Project URL</label><input class="sd-i" id="fo-sb-url" type="text" placeholder="https://xxxx.supabase.co"></div>
-      <div class="sd-f"><label>Anon / public key</label><input class="sd-i" id="fo-sb-key" type="password" placeholder="eyJh..."></div>
-      <div style="font-size:10px;color:var(--t3);margin-top:-.4rem;line-height:1.5">Found in Supabase → Settings → API. The anon key is safe to store here.</div>
+      <div class="sd-f">
+        <label style="display:flex;justify-content:space-between;align-items:center">
+          Anon / public key
+          <span id="fo-key-len" style="font-size:9px;color:var(--t3);font-weight:400">0 chars</span>
+        </label>
+        <input class="sd-i" id="fo-sb-key" type="text" placeholder="eyJh..." 
+          style="font-size:9px;font-family:var(--fm);word-break:break-all;min-height:60px"
+          oninput="document.getElementById('fo-key-len').textContent=this.value.trim().length+' chars (need 200+)'">
+      </div>
+      <div style="font-size:10px;color:var(--t3);margin-top:-.4rem;line-height:1.5">
+        Found in Supabase → Settings → API → <strong>anon / public</strong> key. Should be 200+ characters starting with <strong>eyJh</strong>.
+      </div>
     </div>
   <div class="sd-foot">
     <button class="sd-cancel" onclick="closeSd()">Cancel</button>
@@ -1037,8 +1047,13 @@ window.openSd=function(){
   const urlEl=document.getElementById('fo-sb-url');
   const keyEl=document.getElementById('fo-sb-key');
   const status=document.getElementById('fo-sb-status');
+  const savedKey = localStorage.getItem('fo_supa_key')||'';
   if(urlEl) urlEl.value=localStorage.getItem('fo_supa_url')||'';
-  if(keyEl) keyEl.value=localStorage.getItem('fo_supa_key')||'';
+  if(keyEl) {
+    keyEl.value=savedKey;
+    const lenEl=document.getElementById('fo-key-len');
+    if(lenEl) lenEl.textContent=savedKey.length ? savedKey.length+' chars (need 200+)' : '0 chars';
+  }
   if(status){
     if(SB){status.textContent='Connected ✓';status.style.background='#DCFCE7';status.style.color='#15803D';}
     else{status.textContent='Not connected';status.style.background='#F3F4F6';status.style.color='#6B7280';}
@@ -1069,7 +1084,7 @@ window.saveSd=async function(){
     const key=keyEl.value.trim();
     if(url&&key){
       localStorage.setItem('fo_supa_url',url);
-      localStorage.setItem('fo_supa_key',key);
+      localStorage.setItem('fo_supa_key',key.trim());
       const ok=await foInitSupabase(url,key);
       const status=document.getElementById('fo-sb-status');
       if(ok){
