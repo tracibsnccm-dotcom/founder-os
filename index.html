@@ -711,15 +711,8 @@ const KPI_DEF=[
 
 // HQ editable state (loaded from Supabase on startup)
 let hqState = {
-  priorities: [
-    { text: 'Review open RFPs', entity: 'W4TWP' },
-    { text: 'Attorney outreach — Case Clarity', entity: 'Case Clarity' },
-    { text: 'NurseBridge email platform decision', entity: 'NurseBridge' }
-  ],
-  blockers: [
-    'NurseBridge: email platform TBD',
-    'W4TWP: 3 platform renewals needed'
-  ],
+  priorities: [],
+  blockers: [],
   milestone: 'NAE & Case Clarity batches 3+4 — May 21',
   monthlyReviews: [],
   quarterlyFocuses: []
@@ -1653,8 +1646,10 @@ window.delQuarterlyFocus = async function(i) {
 
 
 // ── START ─────────────────────────────────────────────────────────
-selE('hq');
-loadFromSupabase();
+(async function() {
+  await loadFromSupabase();
+  selE('hq');
+})();
 </script>
 </body>
 </html>
