@@ -350,30 +350,30 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
       <div class="hdr-right">
         <div class="hdr-actions">
           <!-- Utility launcher -->
-          <div class="util-wrap">
-            <button class="hbtn" id="apps-btn" onclick="toggleApps(event)" title="Apps"><i class="ti ti-apps"></i></button>
-            <div class="util-menu" id="util-menu">
-              <div class="util-sep">Productivity &amp; Operations</div>
-              <a class="util-item" href="https://notion.so" target="_blank" rel="noopener noreferrer"><i class="ti ti-notebook" style="color:#1C3C3C"></i>Notion</a>
-              <a class="util-item" href="https://drive.google.com" target="_blank" rel="noopener noreferrer"><i class="ti ti-folder" style="color:#1D7A60"></i>Google Drive</a>
-              <a class="util-item" href="https://mail.google.com" target="_blank" rel="noopener noreferrer"><i class="ti ti-mail" style="color:#EA4335"></i>Gmail</a>
-              <a class="util-item" href="https://calendar.google.com" target="_blank" rel="noopener noreferrer"><i class="ti ti-calendar" style="color:#1A73E8"></i>Google Calendar</a>
-              <div class="util-sep">Marketing &amp; Outreach</div>
-              <a class="util-item" href="https://app.gohighlevel.com" target="_blank" rel="noopener noreferrer"><i class="ti ti-bolt" style="color:#157272"></i>GoHighLevel</a>
-              <a class="util-item" href="https://app.brevo.com" target="_blank" rel="noopener noreferrer"><i class="ti ti-send" style="color:#1D7A60"></i>Brevo</a>
-              <a class="util-item" href="https://app.apollo.io" target="_blank" rel="noopener noreferrer"><i class="ti ti-rocket" style="color:#6D5BA6"></i>Apollo</a>
-              <a class="util-item" href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer"><i class="ti ti-brand-linkedin" style="color:#0077B5"></i>LinkedIn</a>
-              <div class="util-sep">Content</div>
-              <a class="util-item" href="https://studio.youtube.com" target="_blank" rel="noopener noreferrer"><i class="ti ti-brand-youtube" style="color:#CC0000"></i>YouTube Studio</a>
-              <a class="util-item" href="https://riverside.fm" target="_blank" rel="noopener noreferrer"><i class="ti ti-video" style="color:#7A6BB8"></i>Riverside</a>
-              <a class="util-item" href="https://substack.com" target="_blank" rel="noopener noreferrer"><i class="ti ti-pencil" style="color:#FF6719"></i>Substack</a>
-              <a class="util-item" href="https://chatgpt.com" target="_blank" rel="noopener noreferrer"><i class="ti ti-message-circle" style="color:#10A37F"></i>ChatGPT</a>
-              <a class="util-item" href="https://claude.ai" target="_blank" rel="noopener noreferrer"><i class="ti ti-sparkles" style="color:#D8A93A"></i>Claude</a>
-              <div class="util-sep">Optional &amp; Future</div>
-              <a class="util-item" href="https://app.zerobounce.net" target="_blank" rel="noopener noreferrer"><i class="ti ti-shield-check" style="color:#157272"></i>ZeroBounce</a>
-              <a class="util-item" href="https://gobonfire.com" target="_blank" rel="noopener noreferrer"><i class="ti ti-file-text" style="color:#E84B23"></i>Bonfire</a>
-              <a class="util-item" href="https://www.planetbids.com" target="_blank" rel="noopener noreferrer"><i class="ti ti-file-text" style="color:#0057A8"></i>PlanetBid</a>
-              <a class="util-item" href="https://www.periscopeholdings.com" target="_blank" rel="noopener noreferrer"><i class="ti ti-file-text" style="color:#00835B"></i>Periscope</a>
+          <div style="position:relative">
+            <button class="hbtn" id="apps-btn" onclick="foToggle(event)" title="Apps"><i class="ti ti-apps"></i></button>
+            <div id="fo-menu" style="display:none;position:fixed;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:10px;min-width:200px;max-height:420px;overflow-y:auto;box-shadow:0 8px 28px rgba(0,0,0,.18);z-index:99999;font-family:'DM Sans',sans-serif;">
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#94A3B8;padding:.55rem .9rem .2rem">Productivity &amp; Operations</div>
+              <a href="https://notion.so" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-notebook" style="font-size:14px;width:16px;color:#1C3C3C"></i>Notion</a>
+              <a href="https://drive.google.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-folder" style="font-size:14px;width:16px;color:#1D7A60"></i>Google Drive</a>
+              <a href="https://mail.google.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-mail" style="font-size:14px;width:16px;color:#EA4335"></i>Gmail</a>
+              <a href="https://calendar.google.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-calendar" style="font-size:14px;width:16px;color:#1A73E8"></i>Google Calendar</a>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#94A3B8;padding:.55rem .9rem .2rem;border-top:1px solid #F1F5F9;margin-top:.2rem">Marketing &amp; Outreach</div>
+              <a href="https://app.gohighlevel.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-bolt" style="font-size:14px;width:16px;color:#157272"></i>GoHighLevel</a>
+              <a href="https://app.brevo.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-send" style="font-size:14px;width:16px;color:#1D7A60"></i>Brevo</a>
+              <a href="https://app.apollo.io" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-rocket" style="font-size:14px;width:16px;color:#6D5BA6"></i>Apollo</a>
+              <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-brand-linkedin" style="font-size:14px;width:16px;color:#0077B5"></i>LinkedIn</a>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#94A3B8;padding:.55rem .9rem .2rem;border-top:1px solid #F1F5F9;margin-top:.2rem">Content</div>
+              <a href="https://studio.youtube.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-brand-youtube" style="font-size:14px;width:16px;color:#CC0000"></i>YouTube Studio</a>
+              <a href="https://riverside.fm" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-video" style="font-size:14px;width:16px;color:#7A6BB8"></i>Riverside</a>
+              <a href="https://substack.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-pencil" style="font-size:14px;width:16px;color:#FF6719"></i>Substack</a>
+              <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-message-circle" style="font-size:14px;width:16px;color:#10A37F"></i>ChatGPT</a>
+              <a href="https://claude.ai" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-sparkles" style="font-size:14px;width:16px;color:#D8A93A"></i>Claude</a>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#94A3B8;padding:.55rem .9rem .2rem;border-top:1px solid #F1F5F9;margin-top:.2rem">RFP &amp; List Tools</div>
+              <a href="https://app.zerobounce.net" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-shield-check" style="font-size:14px;width:16px;color:#157272"></i>ZeroBounce</a>
+              <a href="https://gobonfire.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-file-text" style="font-size:14px;width:16px;color:#E84B23"></i>Bonfire</a>
+              <a href="https://www.planetbids.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-file-text" style="font-size:14px;width:16px;color:#0057A8"></i>PlanetBid</a>
+              <a href="https://www.periscopeholdings.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500;padding-bottom:.6rem" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-file-text" style="font-size:14px;width:16px;color:#00835B"></i>Periscope</a>
             </div>
           </div>
           <button class="hbtn" onclick="openSd()" title="Metrics"><i class="ti ti-settings"></i></button>
@@ -843,12 +843,24 @@ ${[['EAP providers','Co-marketing'],['Corporate wellness platforms','Integration
 R.w4_systems=()=>`<div class="wsh"><span class="wsbar"></span><span class="wsl">SOP tracker</span></div>${sopTracker()}`;
 
 // ── UTILITY LAUNCHER ──────────────────────────────────────────────
-window.toggleApps=function(e){
+window.foToggle=function(e){
   e.stopPropagation();
-  const m=document.getElementById('util-menu');
-  m.classList.toggle('open');
+  const btn=document.getElementById('apps-btn');
+  const menu=document.getElementById('fo-menu');
+  if(menu.style.display==='none'||menu.style.display===''){
+    const r=btn.getBoundingClientRect();
+    menu.style.top=(r.bottom+6)+'px';
+    menu.style.right=(window.innerWidth-r.right)+'px';
+    menu.style.display='block';
+  } else {
+    menu.style.display='none';
+  }
 };
-document.addEventListener('click',()=>document.getElementById('util-menu').classList.remove('open'));
+document.addEventListener('click',function(e){
+  const menu=document.getElementById('fo-menu');
+  const btn=document.getElementById('apps-btn');
+  if(menu&&btn&&!btn.contains(e.target)){menu.style.display='none';}
+});
 
 // ── SETTINGS ──────────────────────────────────────────────────────
 window.openSd=function(){
