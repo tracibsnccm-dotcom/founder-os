@@ -553,7 +553,7 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
               <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-message-circle" style="font-size:14px;width:16px;color:#10A37F"></i>ChatGPT</a>
               <a href="https://claude.ai" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-sparkles" style="font-size:14px;width:16px;color:#D8A93A"></i>Claude</a>
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#94A3B8;padding:.55rem .9rem .2rem;border-top:1px solid #F1F5F9;margin-top:.2rem">RFP &amp; List Tools</div>
-              <a href="https://app.zerobounce.net" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-shield-check" style="font-size:14px;width:16px;color:#157272"></i>ZeroBounce</a>
+              <a href="https://www.zerobounce.net/members/dashboard" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-shield-check" style="font-size:14px;width:16px;color:#157272"></i>ZeroBounce</a>
               <a href="https://gobonfire.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-file-text" style="font-size:14px;width:16px;color:#E84B23"></i>Bonfire</a>
               <a href="https://www.planetbids.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-file-text" style="font-size:14px;width:16px;color:#0057A8"></i>PlanetBid</a>
               <a href="https://www.periscopeholdings.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500;padding-bottom:.6rem" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-file-text" style="font-size:14px;width:16px;color:#00835B"></i>Periscope</a>
@@ -1062,28 +1062,27 @@ function campaignCC(eid2){
       ['ti-plus','Add New Batch',null,`openBatchModal('nae')`],
       ['ti-send','Open Brevo','https://app.brevo.com',null],
       ['ti-bolt','Open GHL','https://app.gohighlevel.com',null],
+      ['ti-rocket','Apollo (Find Contacts)','https://app.apollo.io',null],
+      ['ti-shield-check','ZeroBounce','https://www.zerobounce.net/members/dashboard',null],
       ['ti-list','View Lead Lists','https://drive.google.com/drive/search?q=NAE+lead+list',null],
-      ['ti-shield-check','ZeroBounce','https://app.zerobounce.net/email-validator',null],
-      ['ti-database-import','Import Contacts','https://app.apollo.io',null],
       ['ti-files','Campaign Assets','https://github.com/tracibsnccm-dotcom/nursebridge/tree/main/emails',null]
     ],
     cc:[
       ['ti-plus','Add New Batch',null,`openBatchModal('cc')`],
       ['ti-send','Open Brevo','https://app.brevo.com',null],
       ['ti-bolt','Open GHL','https://app.gohighlevel.com',null],
+      ['ti-rocket','Apollo (Find Contacts)','https://app.apollo.io',null],
+      ['ti-shield-check','ZeroBounce','https://www.zerobounce.net/members/dashboard',null],
       ['ti-list','View Lead Lists','https://drive.google.com/drive/search?q=CASE+Clarity+lead+list',null],
-      ['ti-shield-check','ZeroBounce','https://app.zerobounce.net/email-validator',null],
-      ['ti-database-import','Import Contacts','https://app.apollo.io',null],
-      ['ti-rocket','Apollo','https://app.apollo.io',null]
+      ['ti-scale','Bonfire RFP','https://gobonfire.com',null]
     ],
     nb:[
       ['ti-plus','Add New Batch',null,`openBatchModal('nb')`],
       ['ti-send','Open Brevo','https://app.brevo.com',null],
       ['ti-world','NurseBridge Demo','https://nursebridgeedu.com',null],
-      ['ti-brand-github','Email Assets','https://github.com/tracibsnccm-dotcom/nursebridge/tree/main/emails',null],
-      ['ti-shield-check','ZeroBounce','https://app.zerobounce.net/email-validator',null],
-      ['ti-database-import','Acquire Contacts','https://app.apollo.io',null],
-      ['ti-rocket','Apollo','https://app.apollo.io',null]
+      ['ti-rocket','Apollo (Acquire Contacts)','https://app.apollo.io',null],
+      ['ti-shield-check','ZeroBounce','https://www.zerobounce.net/members/dashboard',null],
+      ['ti-brand-github','Email Assets','https://github.com/tracibsnccm-dotcom/nursebridge/tree/main/emails',null]
     ]
   };
   const qaBtns=(qaLinks[eid2]||[]).map(([ic,lbl,url,oc])=>{
@@ -1094,6 +1093,45 @@ function campaignCC(eid2){
     return`<button style="${baseStyle}" ${hover} onclick="${oc}">${inner}</button>`;
   }).join('');
 
+  // Batch queue filter state per entity
+  window._bqFilter=window._bqFilter||{};
+  window._bqCollapsed=window._bqCollapsed||{};
+  const bqFilter=window._bqFilter[eid2]||'active';
+  const bqCollapsed=!!window._bqCollapsed[eid2];
+  const bqDefs=[['active','Active / Ready'],['draft','Draft'],['complete','Complete'],['all','All']];
+
+  function bqCount(f){
+    return f==='all'?d.batches.length:d.batches.filter(b=>{
+      if(f==='active') return ['Active','Ready'].includes(b.status);
+      if(f==='draft') return b.status==='Draft';
+      if(f==='complete') return b.status==='Complete';
+      return true;
+    }).length;
+  }
+  const filteredBatches=bqFilter==='all'?d.batches:d.batches.filter(b=>{
+    if(bqFilter==='active') return ['Active','Ready'].includes(b.status);
+    if(bqFilter==='draft') return b.status==='Draft';
+    if(bqFilter==='complete') return b.status==='Complete';
+    return true;
+  });
+
+  const batchFilterTabs=bqDefs.map(([f,lbl])=>{
+    const isActive=f===bqFilter;
+    const cnt=bqCount(f);
+    return`<button onclick="setBqFilter('${eid2}','${f}')" style="padding:.3rem .75rem;font-size:10px;font-weight:${isActive?700:500};border:none;border-bottom:2px solid ${isActive?c:'transparent'};background:none;color:${isActive?c:'var(--t3)'};cursor:pointer;transition:all .1s;font-family:var(--ff)">${lbl} <span style="opacity:.7">(${cnt})</span></button>`;
+  }).join('');
+
+  const filteredRows=filteredBatches.length?filteredBatches.map(b=>`
+<tr>
+  <td style="font-family:var(--fm);font-size:10px;color:var(--t3);padding:.45rem .5rem">${b.name}</td>
+  <td style="font-size:var(--ts-xs);padding:.45rem .5rem">${b.campaign}</td>
+  <td style="font-size:var(--ts-xs);color:var(--t3);padding:.45rem .5rem">${b.cohort}</td>
+  <td style="font-size:var(--ts-xs);font-weight:600;padding:.45rem .5rem">${b.count}</td>
+  <td style="padding:.45rem .5rem">${batchStatusBadge(b.status)}</td>
+  <td style="font-size:var(--ts-xs);color:var(--t3);padding:.45rem .5rem">${b.date}</td>
+  <td style="font-size:var(--ts-xs);color:var(--t3);padding:.45rem .5rem">${b.notes||'—'}</td>
+</tr>`).join(''):`<tr><td colspan="7" style="text-align:center;padding:1.25rem;color:var(--t3);font-size:var(--ts-xs)">No ${bqFilter==='all'?'':bqDefs.find(x=>x[0]===bqFilter)?.[1]?.toLowerCase()+' '}batches</td></tr>`;
+
   return`
 <div style="background:${c};border-radius:var(--rad-sm);padding:.65rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem">
   <i class="ti ti-command" style="font-size:16px;color:rgba(255,255,255,.7)"></i>
@@ -1102,7 +1140,6 @@ function campaignCC(eid2){
     <div style="font-size:var(--ts-sm);font-weight:600;color:#fff">${ECFG[eid2]?.name||eid2.toUpperCase()} — Campaign Operations</div>
   </div>
 </div>
-
 <div class="wg2" style="margin-bottom:1rem">
   <div>
     <div class="wsh"><span class="wsbar" style="background:${c}"></span><span class="wsl">Active Campaigns</span></div>
@@ -1118,23 +1155,34 @@ function campaignCC(eid2){
     <div style="display:flex;flex-wrap:wrap;gap:.4rem">${qaBtns}</div>
   </div>
 </div>
-
-<div class="wsh"><span class="wsbar" style="background:${c}"></span><span class="wsl">Batch Queue</span></div>
-<div style="overflow-x:auto;border:.5px solid var(--bdr);border-radius:var(--rad-sm);background:var(--card)">
-<table class="ctbl" style="min-width:700px">
-  <thead><tr style="background:var(--bg)">
-    <th style="padding:.45rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Batch Name</th>
-    <th style="padding:.45rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Campaign</th>
-    <th style="padding:.45rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Cohort</th>
-    <th style="padding:.45rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Contacts</th>
-    <th style="padding:.45rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Status</th>
-    <th style="padding:.45rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Launch Date</th>
-    <th style="padding:.45rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Notes</th>
-  </tr></thead>
-  <tbody>${batchRows}</tbody>
-</table>
-</div>`;
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+  <div style="display:flex;align-items:center;gap:.5rem">
+    <span class="wsbar" style="background:${c};width:3px;height:14px;border-radius:2px;display:inline-block"></span>
+    <span class="wsl" style="margin:0">Batch Queue</span>
+    <span style="font-size:var(--ts-xs);color:var(--t3);font-weight:400">(${d.batches.length} total)</span>
+  </div>
+  <button onclick="toggleBqCollapse('${eid2}')" style="font-size:var(--ts-xs);font-weight:600;color:${c};background:none;border:.5px solid ${c};border-radius:6px;cursor:pointer;font-family:var(--ff);padding:.2rem .6rem;opacity:.8">${bqCollapsed?'▼ Show Queue':'▲ Hide Queue'}</button>
+</div>
+${bqCollapsed?`<div style="padding:.75rem 1rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm);font-size:var(--ts-xs);color:var(--t3);text-align:center">${d.batches.length} batch${d.batches.length!==1?'es':''} hidden — click Show Queue to view</div>`:`
+<div style="border:.5px solid var(--bdr);border-radius:var(--rad-sm);background:var(--card);overflow:hidden">
+  <div style="display:flex;align-items:center;gap:.1rem;padding:.35rem .6rem;border-bottom:.5px solid var(--bdr);background:var(--bg)">${batchFilterTabs}</div>
+  <div style="overflow-x:auto">
+  <table class="ctbl" style="min-width:680px">
+    <thead><tr style="background:var(--bg)">
+      <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Batch Name</th>
+      <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Campaign</th>
+      <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Cohort</th>
+      <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Contacts</th>
+      <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Status</th>
+      <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Launch Date</th>
+      <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Notes</th>
+    </tr></thead>
+    <tbody>${filteredRows}</tbody>
+  </table>
+  </div>
+</div>`}`;
 }
+
 
 // ── RENDERERS ──────────────────────────────────────────────────────────────────
 const R={};
@@ -1874,6 +1922,18 @@ window.delQuarterlyFocus = async function(i) {
 };
 
 
+
+// ── BATCH QUEUE CONTROLS ──────────────────────────────────────────
+window.setBqFilter=function(eid2,f){
+  window._bqFilter=window._bqFilter||{};
+  window._bqFilter[eid2]=f;
+  renderWS();
+};
+window.toggleBqCollapse=function(eid2){
+  window._bqCollapsed=window._bqCollapsed||{};
+  window._bqCollapsed[eid2]=!window._bqCollapsed[eid2];
+  renderWS();
+};
 
 // ── BATCH MODAL ────────────────────────────────────────────────────
 let _batchEid=null;
