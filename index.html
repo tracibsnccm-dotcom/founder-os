@@ -736,8 +736,8 @@ const ECFG={
     stats:['5 entities','Parent entity']},
   nae:{name:'NAE',sub:'Nurses As Entrepreneurs',c:'#1D7A60',ic:'ti-heart-handshake',st:'a',sl:'Active',tabs:['Dashboard','Campaigns','Content','Systems'],
     stats:['12,000 queued','2 campaigns']},
-  nb:{name:'NurseBridge',sub:'Collegiate Services',c:'#1A8585',ic:'ti-school',st:'p',sl:'Pending',tabs:['Dashboard','Outreach','Schools','Campaign Prep'],
-    stats:['Domain warming','Email platform TBD']},
+  nb:{name:'NurseBridge',sub:'Collegiate Services',c:'#1A8585',ic:'ti-school',st:'p',sl:'Pending',tabs:['Dashboard','Campaigns','Outreach','Schools'],
+    stats:['Campaigns: build ready','7 emails staged']},
   cc:{name:'Case Clarity',sub:'Legal Growth',c:'#6D5BA6',ic:'ti-scale',st:'a',sl:'Active',tabs:['Dashboard','Campaigns','Outreach','Partnerships'],
     stats:['8,200 queued','Batch 1 fired']},
   w4:{name:'W4TWP',sub:'Corporate Growth',c:'#7A6BB8',ic:'ti-briefcase',st:'w',sl:'Review',tabs:['Dashboard','RFPs','Outreach','Systems'],
@@ -895,13 +895,166 @@ function campTable(rows){
 const NAE_C=[{t:'MWFNAE-05-14',s:'MWF',c:'2,500',d:'May 14'},{t:'TTHNAE-05-13',s:'TTH',c:'2,500',d:'May 13'},{t:'MWFNAE-05-21',s:'MWF',c:'2,500',d:'May 21'},{t:'TTHNAE-05-20',s:'TTH',c:'2,500',d:'May 20'},{t:'MWFNAE-05-28',s:'MWF',c:'2,000',d:'May 28'}];
 const CC_C=[{t:'MWFCC-05-14',s:'MWF',c:'2,500',d:'May 14'},{t:'TTHCC-05-13',s:'TTH',c:'2,500',d:'May 13'},{t:'MWFCC-05-21',s:'MWF',c:'2,500',d:'May 21'},{t:'TTHCC-05-20',s:'TTH',c:'700',d:'May 20'}];
 
-// ── RENDERERS ──────────────────────────────────────────────────────
+// ── NURSEBRIDGE BATCH DATA ───────────────────────────────────────
+const NB_C=[];
+
+// ── CAMPAIGN COMMAND CENTER DATA ─────────────────────────────────
+const CAMP_DATA={
+  nae:{
+    color:'#1D7A60',
+    campaigns:[
+      {name:'General Nurse Nurture',status:'Active',platform:'Brevo',audience:'General nurses — 7-part sequence'},
+      {name:'Executive Nurse Waitlist',status:'Active',platform:'GHL',audience:'Nurse executives & leaders'},
+      {name:'From Scrubs To Startup',status:'Pending',platform:'Brevo',audience:'Nurses interested in entrepreneurship'},
+      {name:'Excuse Buster Campaigns',status:'Draft',platform:'GHL',audience:'Re-engagement — cold leads'}
+    ],
+    batches:[
+      {name:'MWFNAE-052026',campaign:'General Nurse Nurture',cohort:'MWF-A',count:'2,500',status:'Active',date:'May 14',notes:''},
+      {name:'TTHNAE-052026',campaign:'General Nurse Nurture',cohort:'TTH-A',count:'2,500',status:'Active',date:'May 13',notes:''},
+      {name:'MWFNAE-052026-B',campaign:'General Nurse Nurture',cohort:'MWF-B',count:'2,500',status:'Active',date:'May 21',notes:''},
+      {name:'TTHNAE-052026-B',campaign:'General Nurse Nurture',cohort:'TTH-B',count:'2,500',status:'Active',date:'May 20',notes:''},
+      {name:'MWFNAE-052026-C',campaign:'General Nurse Nurture',cohort:'MWF-C',count:'2,000',status:'Active',date:'May 28',notes:'Final batch'}
+    ],
+    contacts:{verified:12000,active:11700,reserve:300,replenish:false}
+  },
+  cc:{
+    color:'#6D5BA6',
+    campaigns:[
+      {name:'Attorney Awareness',status:'Active',platform:'Brevo',audience:'Trial & litigation attorneys'},
+      {name:'Trial Follow-Up',status:'Pending',platform:'Brevo',audience:'Post-touch attorneys'},
+      {name:'Re-engagement',status:'Draft',platform:'GHL',audience:'Cold attorney leads'}
+    ],
+    batches:[
+      {name:'MWFCC-052026',campaign:'Attorney Awareness',cohort:'MWF-A',count:'2,500',status:'Active',date:'May 14',notes:''},
+      {name:'TTHCC-052026',campaign:'Attorney Awareness',cohort:'TTH-A',count:'2,500',status:'Active',date:'May 13',notes:''},
+      {name:'MWFCC-052026-B',campaign:'Attorney Awareness',cohort:'MWF-B',count:'2,500',status:'Active',date:'May 21',notes:''},
+      {name:'TTHCC-052026-B',campaign:'Attorney Awareness',cohort:'TTH-B',count:'700',status:'Active',date:'May 20',notes:'Partial batch'}
+    ],
+    contacts:{verified:2470,active:8200,reserve:0,replenish:true,need:'+2,500'}
+  },
+  nb:{
+    color:'#1A8585',
+    campaigns:[
+      {name:'Nursing School Outreach',status:'Pending',platform:'Brevo',audience:'Nursing program admins & faculty'},
+      {name:'Demo Follow-Up',status:'Draft',platform:'Brevo',audience:'Schools that received demo'},
+      {name:'Re-engagement',status:'Draft',platform:'Brevo',audience:'Cold school leads'}
+    ],
+    batches:[
+      {name:'MWFNB-052026',campaign:'Nursing School Outreach',cohort:'MWF-A',count:'TBD',status:'Draft',date:'TBD',notes:'Awaiting contact acquisition'},
+      {name:'TTHNB-052026',campaign:'Nursing School Outreach',cohort:'TTH-A',count:'TBD',status:'Draft',date:'TBD',notes:'Awaiting contact acquisition'}
+    ],
+    contacts:{verified:0,active:0,reserve:0,replenish:true,need:'Acquisition needed'}
+  }
+};
+
+// ── CAMPAIGN COMMAND CENTER RENDERER ─────────────────────────────
+function campStatusBadge(s){
+  const m={Active:'background:#dcfce7;color:#166534',Pending:'background:#fef9c3;color:#854d0e',Draft:'background:#f1f5f9;color:#64748b',Ready:'background:#dbeafe;color:#1e40af',Paused:'background:#fee2e2;color:#991b1b',Complete:'background:#f0fdf4;color:#15803d'};
+  const style=m[s]||m.Draft;
+  return`<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:2px 7px;border-radius:20px;${style}">${s}</span>`;
+}
+function batchStatusBadge(s){
+  const m={Active:'background:#dcfce7;color:#166534',Draft:'background:#f1f5f9;color:#64748b',Ready:'background:#dbeafe;color:#1e40af',Paused:'background:#fee2e2;color:#991b1b',Complete:'background:#e0f2fe;color:#0369a1'};
+  const style=m[s]||m.Draft;
+  return`<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:2px 7px;border-radius:20px;${style}">${s}</span>`;
+}
+
+function campaignCC(eid2){
+  const d=CAMP_DATA[eid2];
+  if(!d)return'';
+  const c=d.color;
+
+  // Active Campaigns Panel
+  const campCards=d.campaigns.map(cp=>`
+<div style="padding:.75rem 1rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm);border-left:3px solid ${c};display:flex;flex-direction:column;gap:.35rem">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
+    <span style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">${cp.name}</span>
+    ${campStatusBadge(cp.status)}
+  </div>
+  <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+    <span style="font-size:var(--ts-xs);color:var(--t3);background:var(--card);border:.5px solid var(--bdr);padding:2px 8px;border-radius:20px"><i class="ti ti-send" style="font-size:10px"></i> ${cp.platform}</span>
+    <span style="font-size:var(--ts-xs);color:var(--t3)">${cp.audience}</span>
+  </div>
+</div>`).join('');
+
+  // Contact Inventory
+  const inv=d.contacts;
+  const invRows=[
+    ['Verified available',inv.verified.toLocaleString(),c],
+    ['Active in campaigns',inv.active.toLocaleString(),'#475569'],
+    ['Reserve contacts',inv.reserve.toLocaleString(),'#475569'],
+  ].map(([l,v,vc])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:.5px solid var(--bdr)"><span style="font-size:var(--ts-xs);color:var(--t3)">${l}</span><span style="font-size:var(--ts-sm);font-weight:600;color:${vc}">${v}</span></div>`).join('');
+  const replenishBanner=inv.replenish?`<div style="margin-top:.6rem;padding:.5rem .75rem;background:#fff7ed;border:.5px solid #fed7aa;border-radius:var(--rad-sm);font-size:var(--ts-xs);color:#c2410c;font-weight:600"><i class="ti ti-alert-triangle" style="font-size:11px"></i> Replenishment needed: ${inv.need||'+'+(inv.replenish)}</div>`:'';
+
+  // Batch Queue Table
+  const batchRows=d.batches.length?d.batches.map(b=>`
+<tr>
+  <td style="font-family:var(--fm);font-size:10px;color:var(--t3);padding:.45rem .5rem">${b.name}</td>
+  <td style="font-size:var(--ts-xs);padding:.45rem .5rem">${b.campaign}</td>
+  <td style="font-size:var(--ts-xs);color:var(--t3);padding:.45rem .5rem">${b.cohort}</td>
+  <td style="font-size:var(--ts-xs);font-weight:600;padding:.45rem .5rem">${b.count}</td>
+  <td style="padding:.45rem .5rem">${batchStatusBadge(b.status)}</td>
+  <td style="font-size:var(--ts-xs);color:var(--t3);padding:.45rem .5rem">${b.date}</td>
+  <td style="font-size:var(--ts-xs);color:var(--t3);padding:.45rem .5rem">${b.notes}</td>
+</tr>`).join(''):`<tr><td colspan="7" style="text-align:center;padding:1.25rem;color:var(--t3);font-size:var(--ts-xs)">No batches configured yet</td></tr>`;
+
+  // Quick Actions
+  const qaLinks={
+    nae:[['ti-plus','Add New Batch',''],['ti-send','Open Brevo','https://app.brevo.com'],['ti-bolt','Open GHL','https://app.gohighlevel.com'],['ti-list','View Lead Lists',''],['ti-shield-check','ZeroBounce Queue','https://app.zerobounce.net'],['ti-database-import','Import Contacts',''],['ti-files','Campaign Assets','https://github.com/tracibsnccm-dotcom/nursebridge/tree/main/emails']],
+    cc:[['ti-plus','Add New Batch',''],['ti-send','Open Brevo','https://app.brevo.com'],['ti-bolt','Open GHL','https://app.gohighlevel.com'],['ti-list','View Lead Lists',''],['ti-shield-check','ZeroBounce Queue','https://app.zerobounce.net'],['ti-database-import','Import Contacts',''],['ti-rocket','Apollo','https://app.apollo.io']],
+    nb:[['ti-plus','Add New Batch',''],['ti-send','Open Brevo','https://app.brevo.com'],['ti-world','NurseBridge Demo','https://nursebridgeedu.com'],['ti-brand-github','Email Assets','https://github.com/tracibsnccm-dotcom/nursebridge/tree/main/emails'],['ti-shield-check','ZeroBounce Queue','https://app.zerobounce.net'],['ti-database-import','Acquire Contacts','https://app.apollo.io'],['ti-rocket','Apollo','https://app.apollo.io']]
+  };
+  const qaBtns=(qaLinks[eid2]||[]).map(([ic,lbl,url])=>`<${url?`a href="${url}" target="_blank"`:'button'} style="display:flex;align-items:center;gap:.4rem;padding:.45rem .8rem;background:var(--card);border:.5px solid var(--bdr);border-radius:var(--rad-sm);font-size:var(--ts-xs);font-weight:600;color:var(--t2);text-decoration:none;cursor:pointer;font-family:var(--ff);white-space:nowrap;transition:background .1s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='var(--card)'"><i class="ti ${ic}" style="font-size:13px;color:${c}"></i>${lbl}</${url?'a':'button'}>`).join('');
+
+  return`
+<div style="background:${c};border-radius:var(--rad-sm);padding:.65rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem">
+  <i class="ti ti-command" style="font-size:16px;color:rgba(255,255,255,.7)"></i>
+  <div>
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:rgba(255,255,255,.6)">Campaign Command Center</div>
+    <div style="font-size:var(--ts-sm);font-weight:600;color:#fff">${ECFG[eid2]?.name||eid2.toUpperCase()} — Campaign Operations</div>
+  </div>
+</div>
+
+<div class="wg2" style="margin-bottom:1rem">
+  <div>
+    <div class="wsh"><span class="wsbar" style="background:${c}"></span><span class="wsl">Active Campaigns</span></div>
+    <div style="display:flex;flex-direction:column;gap:.45rem">${campCards}</div>
+  </div>
+  <div>
+    <div class="wsh"><span class="wsbar" style="background:${c}"></span><span class="wsl">Contact Inventory</span></div>
+    <div style="padding:.75rem 1rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm)">
+      ${invRows}
+      ${replenishBanner}
+    </div>
+    <div class="wsh" style="margin-top:1rem"><span class="wsbar" style="background:${c}"></span><span class="wsl">Quick Actions</span></div>
+    <div style="display:flex;flex-wrap:wrap;gap:.4rem">${qaBtns}</div>
+  </div>
+</div>
+
+<div class="wsh"><span class="wsbar" style="background:${c}"></span><span class="wsl">Batch Queue</span></div>
+<div style="overflow-x:auto;border:.5px solid var(--bdr);border-radius:var(--rad-sm);background:var(--card)">
+<table class="ctbl" style="min-width:700px">
+  <thead><tr style="background:var(--bg)">
+    <th style="padding:.45rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Batch Name</th>
+    <th style="padding:.45rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Campaign</th>
+    <th style="padding:.45rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Cohort</th>
+    <th style="padding:.45rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Contacts</th>
+    <th style="padding:.45rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Status</th>
+    <th style="padding:.45rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Launch Date</th>
+    <th style="padding:.45rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Notes</th>
+  </tr></thead>
+  <tbody>${batchRows}</tbody>
+</table>
+</div>`;
+}
+
+// ── RENDERERS ──────────────────────────────────────────────────────────────────
 const R={};
 
 R.hq=function(){
   var portfolio=[
     ['NAE','#1D7A60','Active','12,000 queued','2 campaigns','nae'],
-    ['NurseBridge','#1A8585','Pending','Domain warming','Email platform TBD','nb'],
+    ['NurseBridge','#1A8585','Pending','Campaigns: build ready','7 emails staged','nb'],
     ['Case Clarity','#6D5BA6','Active','8,200 queued','Batch 1 fired','cc'],
     ['W4TWP','#7A6BB8','Review','3 renewals needed','RFP paused','w4'],
     ['RCMS','#1A5C5C','Active','Parent entity','Cross-entity ops','rcms']
@@ -977,7 +1130,7 @@ R.rcms_dashboard=()=>`
 <div>
 <div class="wsh"><span class="wsbar"></span><span class="wsl">Entity status</span></div>
 <div style="display:flex;flex-direction:column;gap:.45rem">
-${[['NAE','#1D7A60','Active','12,000 queued · 2 campaigns','nae'],['NurseBridge','#1A8585','Pending','Domain warming · email platform TBD','nb'],['Case Clarity','#6D5BA6','Active','8,200 queued · batch 1 fired','cc'],['W4TWP','#7A6BB8','Review','3 subscription renewals needed','w4']].map(([n,c,s,nt,eid2])=>
+${[['NAE','#1D7A60','Active','12,000 queued · 2 campaigns','nae'],['NurseBridge','#1A8585','Pending','Campaign build ready · 7 emails staged','nb'],['Case Clarity','#6D5BA6','Active','8,200 queued · batch 1 fired','cc'],['W4TWP','#7A6BB8','Review','3 subscription renewals needed','w4']].map(([n,c,s,nt,eid2])=>
 `<div style="display:flex;align-items:center;gap:.65rem;padding:.5rem .7rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm);border-left:3px solid ${c};cursor:pointer" onclick="selE('${eid2}')"><span style="font-size:var(--ts-base);font-weight:600;min-width:90px;color:var(--t1)">${n}</span><span style="font-size:var(--ts-xs);color:var(--t3);flex:1">${nt}</span>${bdg(s)}</div>`
 ).join('')}
 </div>
@@ -1020,9 +1173,7 @@ ${[['YouTube channel launch','May 16','Active'],['LinkedIn community growth','On
 </div>
 </div>`;
 
-R.nae_campaigns=()=>`
-<div class="wsh"><span class="wsbar"></span><span class="wsl">General nurses — 7-email sequence</span></div>
-${campTable(NAE_C)}`;
+R.nae_campaigns=()=>campaignCC('nae');
 
 R.nae_content=()=>`
 <div class="wg2">
@@ -1073,19 +1224,8 @@ R.nb_schools=()=>`
 <div style="font-size:var(--ts-sm);color:var(--t3);margin-bottom:.875rem">Email platform decision required before outreach begins.</div>
 ${[['Contact list (~2,600)','ZeroBounce pending','Pending'],['Decision-maker IDs','Program directors · Deans','Pending'],['Demo send','Blocked — email platform','Blocked'],['Partnership pipeline','Speaking · curriculum · advisory','Pending']].map(([t,n,s])=>`<div class="pli"><div><div class="plt">${t}</div><div class="plm">${n}</div></div>${bdg(s)}</div>`).join('')}`;
 
-R['nb_campaign_prep']=()=>`
-<div class="wg2">
-<div>
-<div class="wsh"><span class="wsbar"></span><span class="wsl">Readiness checklist</span></div>
-${[['Demo site built','Complete'],['Email platform selected','Blocked'],['Contact list sourced','Pending'],['Contact list verified','Pending'],['Email sequence written','Pending'],['First send','Blocked']].map(([t,s])=>`<div class="sr"><span class="sr-l">${t}</span>${bdg(s)}</div>`).join('')}
-</div>
-<div>
-<div class="wsh"><span class="wsbar"></span><span class="wsl">Decisions needed</span></div>
-<div class="wcard">
-${[['Email platform','Brevo vs Snov.io vs Apollo'],['LinkedIn scope','Schools only or also NAE nurses'],['GHL sub-account','4th sub-account or alternative']].map(([t,n])=>`<div class="pli"><div><div class="plt" style="font-weight:600">${t}</div><div class="plm">${n}</div></div>${bdg('Review')}</div>`).join('')}
-</div>
-</div>
-</div>`;
+R.nb_campaigns=()=>campaignCC('nb');
+
 
 R.cc_dashboard=()=>`
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.65rem;margin-bottom:1.25rem">
@@ -1104,7 +1244,7 @@ ${[['Attorney direct outreach','Active'],['Legal conference tracking','Pending']
 </div>
 </div>`;
 
-R.cc_campaigns=()=>`<div class="wsh"><span class="wsbar"></span><span class="wsl">Case Clarity — attorney email sequence</span></div>${campTable(CC_C)}`;
+R.cc_campaigns=()=>campaignCC('cc');
 
 R.cc_outreach=()=>`
 <div class="wsh"><span class="wsbar"></span><span class="wsl">Attorney outreach pipeline</span></div>
