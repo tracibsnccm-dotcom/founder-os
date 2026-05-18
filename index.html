@@ -463,6 +463,63 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
   </div>
 </div>
 
+<div class="fo-modal-ov" id="batch-modal" onclick="if(event.target===this)closeBatchModal()">
+  <div class="fo-modal">
+    <div class="fo-modal-hdr">
+      <div class="fo-modal-title" id="batch-modal-title">Add New Batch</div>
+      <button class="fo-modal-x" onclick="closeBatchModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="fo-modal-body">
+      <div class="fo-g2">
+        <div class="fo-field">
+          <label class="fo-label">Batch Name *</label>
+          <input class="sd-i" id="bm-name" placeholder="e.g. MWFNB-062026" style="font-family:var(--fm)">
+        </div>
+        <div class="fo-field">
+          <label class="fo-label">Campaign *</label>
+          <select class="sd-i" id="bm-campaign"></select>
+        </div>
+      </div>
+      <div class="fo-g2">
+        <div class="fo-field">
+          <label class="fo-label">Cohort</label>
+          <select class="sd-i" id="bm-cohort">
+            <option>MWF-A</option><option>MWF-B</option><option>MWF-C</option>
+            <option>TTH-A</option><option>TTH-B</option><option>TTH-C</option>
+            <option>Custom</option>
+          </select>
+        </div>
+        <div class="fo-field">
+          <label class="fo-label">Contact Count</label>
+          <input class="sd-i" id="bm-count" placeholder="e.g. 2,500">
+        </div>
+      </div>
+      <div class="fo-g2">
+        <div class="fo-field">
+          <label class="fo-label">Status</label>
+          <select class="sd-i" id="bm-status">
+            <option>Draft</option><option>Ready</option><option>Active</option>
+            <option>Paused</option><option>Complete</option>
+          </select>
+        </div>
+        <div class="fo-field">
+          <label class="fo-label">Launch Date</label>
+          <input class="sd-i" id="bm-date" type="date">
+        </div>
+      </div>
+      <div class="fo-field">
+        <label class="fo-label">Notes</label>
+        <input class="sd-i" id="bm-notes" placeholder="Optional notes...">
+      </div>
+    </div>
+    <div class="fo-modal-foot">
+      <button class="fo-cancel" onclick="closeBatchModal()">Cancel</button>
+      <button class="fo-submit" onclick="saveBatch()">Add Batch</button>
+    </div>
+  </div>
+</div>
+
+
 <div class="shell">
 
   <!-- HEADER -->
@@ -999,12 +1056,43 @@ function campaignCC(eid2){
 </tr>`).join(''):`<tr><td colspan="7" style="text-align:center;padding:1.25rem;color:var(--t3);font-size:var(--ts-xs)">No batches configured yet</td></tr>`;
 
   // Quick Actions
+  // qa items: [icon, label, url-or-null, onclick-or-null]
   const qaLinks={
-    nae:[['ti-plus','Add New Batch',''],['ti-send','Open Brevo','https://app.brevo.com'],['ti-bolt','Open GHL','https://app.gohighlevel.com'],['ti-list','View Lead Lists',''],['ti-shield-check','ZeroBounce Queue','https://app.zerobounce.net'],['ti-database-import','Import Contacts',''],['ti-files','Campaign Assets','https://github.com/tracibsnccm-dotcom/nursebridge/tree/main/emails']],
-    cc:[['ti-plus','Add New Batch',''],['ti-send','Open Brevo','https://app.brevo.com'],['ti-bolt','Open GHL','https://app.gohighlevel.com'],['ti-list','View Lead Lists',''],['ti-shield-check','ZeroBounce Queue','https://app.zerobounce.net'],['ti-database-import','Import Contacts',''],['ti-rocket','Apollo','https://app.apollo.io']],
-    nb:[['ti-plus','Add New Batch',''],['ti-send','Open Brevo','https://app.brevo.com'],['ti-world','NurseBridge Demo','https://nursebridgeedu.com'],['ti-brand-github','Email Assets','https://github.com/tracibsnccm-dotcom/nursebridge/tree/main/emails'],['ti-shield-check','ZeroBounce Queue','https://app.zerobounce.net'],['ti-database-import','Acquire Contacts','https://app.apollo.io'],['ti-rocket','Apollo','https://app.apollo.io']]
+    nae:[
+      ['ti-plus','Add New Batch',null,`openBatchModal('nae')`],
+      ['ti-send','Open Brevo','https://app.brevo.com',null],
+      ['ti-bolt','Open GHL','https://app.gohighlevel.com',null],
+      ['ti-list','View Lead Lists','https://drive.google.com/drive/search?q=NAE+lead+list',null],
+      ['ti-shield-check','ZeroBounce','https://app.zerobounce.net/email-validator',null],
+      ['ti-database-import','Import Contacts','https://app.apollo.io',null],
+      ['ti-files','Campaign Assets','https://github.com/tracibsnccm-dotcom/nursebridge/tree/main/emails',null]
+    ],
+    cc:[
+      ['ti-plus','Add New Batch',null,`openBatchModal('cc')`],
+      ['ti-send','Open Brevo','https://app.brevo.com',null],
+      ['ti-bolt','Open GHL','https://app.gohighlevel.com',null],
+      ['ti-list','View Lead Lists','https://drive.google.com/drive/search?q=CASE+Clarity+lead+list',null],
+      ['ti-shield-check','ZeroBounce','https://app.zerobounce.net/email-validator',null],
+      ['ti-database-import','Import Contacts','https://app.apollo.io',null],
+      ['ti-rocket','Apollo','https://app.apollo.io',null]
+    ],
+    nb:[
+      ['ti-plus','Add New Batch',null,`openBatchModal('nb')`],
+      ['ti-send','Open Brevo','https://app.brevo.com',null],
+      ['ti-world','NurseBridge Demo','https://nursebridgeedu.com',null],
+      ['ti-brand-github','Email Assets','https://github.com/tracibsnccm-dotcom/nursebridge/tree/main/emails',null],
+      ['ti-shield-check','ZeroBounce','https://app.zerobounce.net/email-validator',null],
+      ['ti-database-import','Acquire Contacts','https://app.apollo.io',null],
+      ['ti-rocket','Apollo','https://app.apollo.io',null]
+    ]
   };
-  const qaBtns=(qaLinks[eid2]||[]).map(([ic,lbl,url])=>`<${url?`a href="${url}" target="_blank"`:'button'} style="display:flex;align-items:center;gap:.4rem;padding:.45rem .8rem;background:var(--card);border:.5px solid var(--bdr);border-radius:var(--rad-sm);font-size:var(--ts-xs);font-weight:600;color:var(--t2);text-decoration:none;cursor:pointer;font-family:var(--ff);white-space:nowrap;transition:background .1s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='var(--card)'"><i class="ti ${ic}" style="font-size:13px;color:${c}"></i>${lbl}</${url?'a':'button'}>`).join('');
+  const qaBtns=(qaLinks[eid2]||[]).map(([ic,lbl,url,oc])=>{
+    const baseStyle=`display:flex;align-items:center;gap:.4rem;padding:.45rem .8rem;background:var(--card);border:.5px solid var(--bdr);border-radius:var(--rad-sm);font-size:var(--ts-xs);font-weight:600;color:var(--t2);text-decoration:none;cursor:pointer;font-family:var(--ff);white-space:nowrap;transition:background .1s`;
+    const inner=`<i class="ti ${ic}" style="font-size:13px;color:${c}"></i>${lbl}`;
+    const hover=`onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='var(--card)'"`;
+    if(url) return`<a href="${url}" target="_blank" rel="noopener noreferrer" style="${baseStyle}" ${hover}>${inner}</a>`;
+    return`<button style="${baseStyle}" ${hover} onclick="${oc}">${inner}</button>`;
+  }).join('');
 
   return`
 <div style="background:${c};border-radius:var(--rad-sm);padding:.65rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem">
@@ -1785,6 +1873,56 @@ window.delQuarterlyFocus = async function(i) {
   renderWS();
 };
 
+
+
+// ── BATCH MODAL ────────────────────────────────────────────────────
+let _batchEid=null;
+
+window.openBatchModal=function(eid2){
+  _batchEid=eid2;
+  const d=CAMP_DATA[eid2];
+  const cfg=ECFG[eid2];
+  // Set modal title
+  document.getElementById('batch-modal-title').textContent='Add New Batch — '+(cfg?cfg.name:eid2.toUpperCase());
+  // Populate campaign dropdown
+  const sel=document.getElementById('bm-campaign');
+  sel.innerHTML=(d?d.campaigns:[]).map(c=>`<option>${c.name}</option>`).join('');
+  // Set default batch name
+  const now=new Date();
+  const mm=String(now.getMonth()+1).padStart(2,'0');
+  const yy=now.getFullYear();
+  document.getElementById('bm-name').value=`MWF${eid2.toUpperCase()}-${mm}${yy}`;
+  // Set today's date
+  document.getElementById('bm-date').value=now.toISOString().split('T')[0];
+  // Reset fields
+  document.getElementById('bm-count').value='';
+  document.getElementById('bm-notes').value='';
+  document.getElementById('bm-status').value='Draft';
+  // Open
+  document.getElementById('batch-modal').classList.add('open');
+};
+
+window.closeBatchModal=function(){
+  document.getElementById('batch-modal').classList.remove('open');
+  _batchEid=null;
+};
+
+window.saveBatch=function(){
+  if(!_batchEid)return;
+  const name=document.getElementById('bm-name').value.trim();
+  if(!name){document.getElementById('bm-name').focus();return;}
+  const campaign=document.getElementById('bm-campaign').value;
+  const cohort=document.getElementById('bm-cohort').value;
+  const count=document.getElementById('bm-count').value.trim()||'TBD';
+  const status=document.getElementById('bm-status').value;
+  const rawDate=document.getElementById('bm-date').value;
+  const dateDisp=rawDate?new Date(rawDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'TBD';
+  const notes=document.getElementById('bm-notes').value.trim();
+  CAMP_DATA[_batchEid].batches.push({name,campaign,cohort,count,status,date:dateDisp,notes});
+  closeBatchModal();
+  renderWS();
+  foShowToast('Batch added ✓','#157272');
+};
 
 // ── START ─────────────────────────────────────────────────────────
 (async function() {
