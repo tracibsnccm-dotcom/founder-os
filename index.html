@@ -1046,16 +1046,18 @@ function campaignCC(eid2){
   if(!d)return'';
   const c=d.color;
 
-  // Active Campaigns Panel — table layout matches batch notes pattern (confirmed working)
-  const campCards=`<table style="width:100%;border-collapse:collapse">${d.campaigns.map(cp=>{
-    const m={Active:'background:#dcfce7;color:#166534',Pending:'background:#fef9c3;color:#854d0e',Draft:'background:#f1f5f9;color:#64748b',Ready:'background:#dbeafe;color:#1e40af',Paused:'background:#fee2e2;color:#991b1b',Complete:'background:#f0fdf4;color:#15803d'};
-    const bdgStyle=m[cp.status]||m.Draft;
-    return `<tr style="border-bottom:.5px solid var(--bdr)">
-  <td style="padding:.5rem .4rem;font-size:var(--ts-sm);font-weight:600;color:var(--t1)">${cp.name}</td>
-  <td style="padding:.5rem .4rem;font-size:var(--ts-xs);color:var(--t3)">${cp.platform} · ${cp.audience}</td>
-  <td style="padding:.5rem .4rem;cursor:pointer" onclick="inlineEditCampStatus(this,'${eid2}','${cp.name}')" title="Click to change status"><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:2px 7px;border-radius:20px;${bdgStyle}">${cp.status}</span></td>
-</tr>`;
-  }).join('')}</table>`;
+  // Active Campaigns Panel
+  const campCards=d.campaigns.map(cp=>`
+<div style="padding:.75rem 1rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm);border-left:3px solid ${c};display:flex;flex-direction:column;gap:.35rem">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
+    <span style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">${cp.name}</span>
+    ${campStatusBadge(cp.status)}
+  </div>
+  <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+    <span style="font-size:var(--ts-xs);color:var(--t3);background:var(--card);border:.5px solid var(--bdr);padding:2px 8px;border-radius:20px"><i class="ti ti-send" style="font-size:10px"></i> ${cp.platform}</span>
+    <span style="font-size:var(--ts-xs);color:var(--t3)">${cp.audience}</span>
+  </div>
+</div>`).join('');
 
   // Contact Inventory
   const inv=d.contacts;
@@ -1632,29 +1634,6 @@ document.getElementById('rnote-btn').onclick = async function() {
 };
 
 // ── INLINE BATCH NOTE EDIT ─────────────────────────────────────────
-window.inlineEditCampStatus = function(td, eid2, campName) {
-  if (td.querySelector('select')) return;
-  var camp = CAMP_DATA[eid2] && CAMP_DATA[eid2].campaigns.find(function(cp){ return cp.name === campName; });
-  if (!camp) return;
-  var sel = document.createElement('select');
-  sel.style.cssText = 'font-size:10px;border:.5px solid var(--dk);border-radius:5px;padding:.2rem .35rem;font-family:var(--ff);background:#fff;color:var(--t1);outline:none';
-  ['Active','Pending','Draft','Ready','Paused','Complete'].forEach(function(s){
-    var opt = document.createElement('option');
-    opt.value = s; opt.textContent = s;
-    if (s === camp.status) opt.selected = true;
-    sel.appendChild(opt);
-  });
-  td.innerHTML = '';
-  td.appendChild(sel);
-  sel.focus();
-  sel.onchange = function() {
-    camp.status = sel.value;
-    foShowToast('Status → ' + sel.value, '#157272');
-    renderWS();
-  };
-  sel.onblur = function() { renderWS(); };
-};
-
 window.inlineEditNote = function(td, eid2, batchName) {
   if (td.querySelector('input')) return; // already editing
   const current = CAMP_DATA[eid2]?.batches.find(b => b.name === batchName)?.notes || '';
