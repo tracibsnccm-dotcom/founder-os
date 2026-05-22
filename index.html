@@ -1060,6 +1060,9 @@ function campaignCC(eid2){
     <span style="font-size:var(--ts-xs);color:var(--t3);background:var(--card);border:.5px solid var(--bdr);padding:2px 8px;border-radius:20px"><i class="ti ti-send" style="font-size:10px"></i> ${cp.platform}</span>
     <span style="font-size:var(--ts-xs);color:var(--t3)">${cp.audience}</span>
   </div>
+  <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.15rem">
+    ${['Active','Pending','Draft','Ready','Paused','Complete'].map(s=>`<a href="javascript:void(0)" onclick="window.setCampStatus('${eid2}','${cp.name}','${s}')" style="font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 7px;border-radius:20px;text-decoration:none;${s===cp.status?'background:#157272;color:#fff;':'background:var(--bg);color:var(--t3);border:.5px solid var(--bdr);'}">${s}</a>`).join('')}
+  </div>
 </div>`).join('');
 
   // Contact Inventory
@@ -1666,6 +1669,14 @@ window.cycleCampStatus = function(eid2, campName) {
   const idx = statuses.indexOf(camp.status);
   camp.status = statuses[(idx + 1) % statuses.length];
   foShowToast('Status → ' + camp.status, '#157272');
+  renderWS();
+};
+
+window.setCampStatus = function(eid2, campName, newStatus) {
+  var camp = CAMP_DATA[eid2] && CAMP_DATA[eid2].campaigns.find(function(cp){ return cp.name === campName; });
+  if (!camp) return;
+  camp.status = newStatus;
+  foShowToast('Status → ' + newStatus, '#157272');
   renderWS();
 };
 
