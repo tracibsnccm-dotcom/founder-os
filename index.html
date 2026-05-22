@@ -912,6 +912,13 @@ function renderWS(){
   const wsc=document.getElementById('wsc');
   wsc.innerHTML=fn?fn():`<div class="empty"><i class="ti ti-dots"></i><div class="empty-t">Coming soon</div></div>`;
   wsc.style.animation='none';void wsc.offsetHeight;wsc.style.animation='';
+  // Bind campaign status clicks directly after HTML is written
+  wsc.querySelectorAll('.camp-status-wrap').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      editCampStatus(el.dataset.eid, el.dataset.camp, el);
+    });
+  });
   document.querySelectorAll('.sop-sel').forEach(sel=>{
     sel.onchange=function(){
       const k=this.dataset.key,m=SM[this.value]||SM.ns;
@@ -1679,13 +1686,7 @@ window.editCampStatus = function(eid2, campName, el) {
   sel.onblur = () => renderWS();
 };
 
-// Event delegation — catches camp-status-wrap clicks regardless of innerHTML rebuilds
-document.addEventListener('click', function(e) {
-  const wrap = e.target.closest('.camp-status-wrap');
-  if (!wrap) return;
-  e.stopPropagation();
-  editCampStatus(wrap.dataset.eid, wrap.dataset.camp, wrap);
-});
+// Campaign status editing handled via direct binding in renderWS()
 
 
 window.foShowToast = foShowToast;
