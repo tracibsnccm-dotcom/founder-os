@@ -1037,9 +1037,10 @@ function campStatusBadge(s){
 }
 function campStatusSelect(eid2, campName, current){
   const statuses=['Active','Pending','Draft','Ready','Paused','Complete'];
-  const m={Active:'#166534',Pending:'#854d0e',Draft:'#64748b',Ready:'#1e40af',Paused:'#991b1b',Complete:'#15803d'};
+  const bg={Active:'#dcfce7',Pending:'#fef9c3',Draft:'#f1f5f9',Ready:'#dbeafe',Paused:'#fee2e2',Complete:'#f0fdf4'};
+  const fg={Active:'#166534',Pending:'#854d0e',Draft:'#64748b',Ready:'#1e40af',Paused:'#991b1b',Complete:'#15803d'};
   const opts=statuses.map(s=>`<option value="${s}"${s===current?' selected':''}>${s}</option>`).join('');
-  return`<select onchange="updateCampStatus(this)" data-eid="${eid2}" data-camp="${campName}" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border:.5px solid #ddd;border-radius:20px;padding:2px 8px;font-family:var(--ff);color:${m[current]||m.Draft};background:#fff;cursor:pointer;outline:none">${opts}</select>`;
+  return`<select onchange="updateCampStatus(this)" data-eid="${eid2}" data-camp="${campName}" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:2px 8px;border-radius:20px;border:1px solid ${fg[current]||fg.Draft};background:${bg[current]||bg.Draft};color:${fg[current]||fg.Draft};cursor:pointer;font-family:var(--ff);outline:none;appearance:none;-webkit-appearance:none">${opts}</select>`;
 }
 function batchStatusBadge(s){
   const m={Active:'background:#dcfce7;color:#166534',Draft:'background:#f1f5f9;color:#64748b',Ready:'background:#dbeafe;color:#1e40af',Paused:'background:#fee2e2;color:#991b1b',Complete:'background:#e0f2fe;color:#0369a1'};
@@ -1054,7 +1055,7 @@ function campaignCC(eid2){
 
   // Active Campaigns Panel
   const campCards=d.campaigns.map(cp=>`
-<div style="padding:.75rem 1rem;background:var(--bg);border:3px solid red;border-radius:var(--rad-sm);border-left:3px solid ${c};display:flex;flex-direction:column;gap:.35rem">
+<div style="padding:.75rem 1rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm);border-left:3px solid ${c};display:flex;flex-direction:column;gap:.35rem">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
     <span style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">${cp.name}</span>
     ${campStatusSelect(eid2, cp.name, cp.status)}
