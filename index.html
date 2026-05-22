@@ -1036,6 +1036,7 @@ function campStatusBadge(s){
   return`<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:2px 7px;border-radius:20px;${style}">${s}</span>`;
 }
 function campStatusSelect(eid2, campName, current){
+  console.log('campStatusSelect:', eid2, campName, current);
   const statuses=['Active','Pending','Draft','Ready','Paused','Complete'];
   const opts=statuses.map(s=>`<option value="${s}"${s===current?' selected':''}>${s}</option>`).join('');
   return`<select onchange="updateCampStatus(this)" data-eid="${eid2}" data-camp="${campName}" style="font-size:11px;border:1px solid #ccc;border-radius:4px;padding:2px 6px;cursor:pointer;font-family:var(--ff);background:#fff">${opts}</select>`;
@@ -1048,6 +1049,7 @@ function batchStatusBadge(s){
 
 function campaignCC(eid2){
   const d=CAMP_DATA[eid2];
+  console.log('campaignCC called for:', eid2, '| campaigns:', d ? d.campaigns.length : 'NO DATA');
   if(!d)return'';
   const c=d.color;
 
