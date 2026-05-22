@@ -366,7 +366,7 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .tw-hint{font-size:10px;color:var(--t3);font-style:italic;padding:.2rem 0}
 </style>
 </head>
-<body><div style="position:fixed;top:0;left:0;right:0;background:#c0111f;color:#fff;text-align:center;font-size:13px;font-weight:700;padding:6px;z-index:99999">VERSION OK — App restored ✓ — If you see this, refresh worked</div><div style="height:32px"></div>
+<body>
 
 <!-- SETTINGS DRAWER -->
 <div class="sd-ov" id="sd-ov" onclick="closeSd()"></div>
@@ -1169,7 +1169,6 @@ function campaignCC(eid2){
   <div>
     <div class="wsh"><span class="wsbar" style="background:${c}"></span><span class="wsl">Active Campaigns</span></div>
     <div style="display:flex;flex-direction:column;gap:.45rem">${campCards}</div>
-    ${statusPanel}
   </div>
   <div>
     <div class="wsh"><span class="wsbar" style="background:${c}"></span><span class="wsl">Contact Inventory</span></div>
@@ -1656,14 +1655,6 @@ window.inlineEditNote = function(td, eid2, batchName) {
   inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } if (e.key === 'Escape') { inp.value = current; inp.blur(); } };
 };
 
-
-window.updateCampStatus = function(sel) {
-  const camp = CAMP_DATA[sel.dataset.eid]?.campaigns.find(cp => cp.name === sel.dataset.camp);
-  if (!camp) return;
-  camp.status = sel.value;
-  foShowToast("Status updated ✓", "#6D5BA6");
-  renderWS();
-};
 
 window.foShowToast = foShowToast;
 
