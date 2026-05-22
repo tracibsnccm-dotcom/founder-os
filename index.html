@@ -251,6 +251,21 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .trs:focus{outline:none;border-color:var(--g)}
 .trbg{font-size:var(--ts-xs);padding:2px 8px;border-radius:20px;display:inline-block;margin-top:.2rem;font-weight:600}
 
+/* ── RUNNING NOTES ── */
+.rnote-section{grid-column:1/-1;border-top:.5px solid var(--bdr);padding-top:1rem;margin-top:.25rem}
+.rnote-header{display:flex;align-items:center;gap:.35rem;font-size:var(--ts-sm);font-weight:600;color:var(--t1);margin-bottom:.2rem}
+.rnote-form{display:flex;gap:.4rem;margin-bottom:.5rem;align-items:flex-start}
+.rnote-ta{flex:1;font-size:var(--ts-sm);border:.5px solid var(--bdr);border-radius:7px;padding:.4rem .55rem;background:var(--bg);color:var(--t1);font-family:var(--ff);min-height:52px;resize:none}
+.rnote-ta:focus{outline:none;border-color:var(--plum);background:#fff}
+.rnote-btn{font-size:var(--ts-xs);padding:.35rem .75rem;border:.5px solid var(--bdr);border-radius:7px;background:var(--card);color:var(--t2);cursor:pointer;font-family:var(--ff);white-space:nowrap;align-self:flex-start;margin-top:2px}
+.rnote-btn:hover{border-color:var(--plum);color:var(--plum)}
+.rnote-list{display:flex;flex-direction:column;gap:.3rem;max-height:160px;overflow-y:auto}
+.rnote-card{background:var(--bg);border:.5px solid var(--bdr);border-radius:7px;padding:.45rem .55rem;position:relative;padding-right:1.4rem}
+.rnote-ts{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--plum);margin-bottom:2px}
+.rnote-body{font-size:var(--ts-xs);color:var(--t2);line-height:1.5}
+.rnote-del{position:absolute;top:.35rem;right:.4rem;font-size:11px;color:var(--t3);cursor:pointer;border:none;background:none;padding:0}
+.rnote-del:hover{color:#B91C1C}
+
 /* ── SETTINGS DRAWER ── */
 .sd-ov{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;display:none;backdrop-filter:blur(3px)}
 .sd-ov.open{display:block}
@@ -618,6 +633,16 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
         <div class="cap-div"></div>
         <div class="capform"><input class="inp" id="tt2" placeholder="What came up?"><input class="inp" id="td" type="date"><textarea class="ta" id="tn" rows="2" placeholder="Details..."></textarea><select class="trs" id="tc"><option value="a">Do today</option><option value="b">Schedule</option><option value="c">Delegate</option><option value="d">Add to project</option><option value="e">Ignore</option></select><button class="cap-btn" id="ta3">+ Triage</button></div>
         <div class="caplist" id="tl3"><div class="cht">Nothing in triage</div></div>
+      </div>
+      <!-- RUNNING NOTES — full-width row -->
+      <div class="rnote-section">
+        <div class="rnote-header"><i class="ti ti-notebook" style="font-size:14px;color:var(--plum)"></i>Running Notes</div>
+        <div class="cap-desc" style="margin-bottom:.5rem">Narrative context — what's happening, what you're thinking, where things stand.</div>
+        <div class="rnote-form">
+          <textarea class="rnote-ta" id="rnote-input" rows="2" placeholder="Write a note about what's going on right now..."></textarea>
+          <button class="rnote-btn" id="rnote-btn">+ Save Note</button>
+        </div>
+        <div class="rnote-list" id="rnote-list"><div class="cht">No notes yet</div></div>
       </div>
     </div>
   </div>
@@ -1129,7 +1154,7 @@ function campaignCC(eid2){
   <td style="font-size:var(--ts-xs);font-weight:600;padding:.45rem .5rem">${b.count}</td>
   <td style="padding:.45rem .5rem">${batchStatusBadge(b.status)}</td>
   <td style="font-size:var(--ts-xs);color:var(--t3);padding:.45rem .5rem">${b.date}</td>
-  <td style="font-size:var(--ts-xs);color:var(--t3);padding:.45rem .5rem">${b.notes||'—'}</td>
+  <td style="font-size:var(--ts-xs);color:var(--t2);padding:.45rem .5rem;cursor:pointer;min-width:120px" title="Click to edit note" onclick="inlineEditNote(this,'${eid2}','${b.name}')">${b.notes||'<span style=\'color:var(--t3)\'>+ add note</span>'}</td>
 </tr>`).join(''):`<tr><td colspan="7" style="text-align:center;padding:1.25rem;color:var(--t3);font-size:var(--ts-xs)">No ${bqFilter==='all'?'':bqDefs.find(x=>x[0]===bqFilter)?.[1]?.toLowerCase()+' '}batches</td></tr>`;
 
   return`
@@ -1575,6 +1600,61 @@ wire('bt','bd','bn','ba','bl','brain_dump');
 wire('pt','pd','pn','pa','pl','parking_lot');
 wire('tt2','td','tn','ta3','tl3','triage',()=>{const v=document.getElementById('tc').value,m=TRMAP[v];return m?`<span class="trbg ${m.c}">${m.l}</span>`:''});
 
+// ── RUNNING NOTES ──────────────────────────────────────────────────
+function mkRNote(ts, body, dbId) {
+  const card = document.createElement('div');
+  card.className = 'rnote-card';
+  if (dbId) card.dataset.dbid = dbId;
+  card.innerHTML = `<button class="rnote-del" onclick="foDelRNote(this)"><i class="ti ti-x"></i></button><div class="rnote-ts">${ts}</div><div class="rnote-body">${body}</div>`;
+  return card;
+}
+
+window.foDelRNote = async function(btn) {
+  const card = btn.parentElement;
+  const id = card.dataset.dbid;
+  if (id) await dbDelete(id);
+  card.remove();
+  const list = document.getElementById('rnote-list');
+  if (list && !list.querySelector('.rnote-card')) list.innerHTML = '<div class="cht">No notes yet</div>';
+};
+
+document.getElementById('rnote-btn').onclick = async function() {
+  const ta = document.getElementById('rnote-input');
+  const txt = ta.value.trim();
+  if (!txt) return;
+  const now = new Date();
+  const ts = now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + ' · ' + now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  const list = document.getElementById('rnote-list');
+  const hint = list.querySelector('.cht'); if (hint) hint.remove();
+  const saved = await dbInsert({item_type:'running_note', title:ts, body:txt, metadata:{}});
+  const card = mkRNote(ts, txt, saved ? saved.id : null);
+  list.insertBefore(card, list.firstChild);
+  ta.value = '';
+  foShowToast('Note saved ✓','#6D5BA6');
+};
+
+// ── INLINE BATCH NOTE EDIT ─────────────────────────────────────────
+window.inlineEditNote = function(td, eid2, batchName) {
+  if (td.querySelector('input')) return; // already editing
+  const current = CAMP_DATA[eid2]?.batches.find(b => b.name === batchName)?.notes || '';
+  const inp = document.createElement('input');
+  inp.value = current;
+  inp.style.cssText = 'font-size:10px;border:.5px solid var(--plum);border-radius:5px;padding:.2rem .35rem;width:100%;font-family:var(--ff);background:#fff;color:var(--t1);outline:none';
+  inp.placeholder = 'Add a note...';
+  td.innerHTML = '';
+  td.appendChild(inp);
+  inp.focus();
+  const save = () => {
+    const val = inp.value.trim();
+    const batch = CAMP_DATA[eid2]?.batches.find(b => b.name === batchName);
+    if (batch) batch.notes = val;
+    td.innerHTML = val || '<span style="color:var(--t3)">+ add note</span>';
+    foShowToast('Note updated ✓','#6D5BA6');
+  };
+  inp.onblur = save;
+  inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } if (e.key === 'Escape') { inp.value = current; inp.blur(); } };
+};
+
 
 window.foShowToast = foShowToast;
 
@@ -1709,6 +1789,16 @@ async function loadFromSupabase(){
       list.appendChild(mkC(item.title||'',item.due_date||'',item.body||'',badge,item.id));
     });
   });
+
+  // Restore running notes (newest first)
+  const rnotes = items.filter(i => i.item_type === 'running_note');
+  if (rnotes.length) {
+    const rlist = document.getElementById('rnote-list');
+    if (rlist) {
+      const hint = rlist.querySelector('.cht'); if (hint) hint.remove();
+      [...rnotes].reverse().forEach(n => rlist.appendChild(mkRNote(n.title||'', n.body||'', n.id)));
+    }
+  }
 }
 
 
@@ -1992,3 +2082,4 @@ window.saveBatch=function(){
 </script>
 </body>
 </html>
+
