@@ -1037,9 +1037,10 @@ function campStatusBadge(s){
 }
 function campStatusSelect(eid2, campName, current){
   console.log('campStatusSelect:', eid2, campName, current);
-  const statuses=['Active','Pending','Draft','Ready','Paused','Complete'];
-  const opts=statuses.map(s=>`<option value="${s}"${s===current?' selected':''}>${s}</option>`).join('');
-  return`<select onchange="updateCampStatus(this)" data-eid="${eid2}" data-camp="${campName}" style="font-size:11px;border:1px solid #ccc;border-radius:4px;padding:2px 6px;cursor:pointer;font-family:var(--ff);background:#fff">${opts}</select>`;
+  const bg={Active:'#dcfce7',Pending:'#fef9c3',Draft:'#f1f5f9',Ready:'#dbeafe',Paused:'#fee2e2',Complete:'#f0fdf4'};
+  const fg={Active:'#166534',Pending:'#854d0e',Draft:'#64748b',Ready:'#1e40af',Paused:'#991b1b',Complete:'#15803d'};
+  const b=bg[current]||bg.Draft, f=fg[current]||fg.Draft;
+  return`<button type="button" onclick="window.cycleCampStatus('${eid2}','${campName}')" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:2px 8px;border-radius:20px;border:1.5px solid ${f};background:${b};color:${f};cursor:pointer;font-family:inherit">${current} ▼</button>`;
 }
 function batchStatusBadge(s){
   const m={Active:'background:#dcfce7;color:#166534',Draft:'background:#f1f5f9;color:#64748b',Ready:'background:#dbeafe;color:#1e40af',Paused:'background:#fee2e2;color:#991b1b',Complete:'background:#e0f2fe;color:#0369a1'};
@@ -1668,6 +1669,16 @@ window.updateCampStatus = function(sel) {
   if (!camp) return;
   camp.status = sel.value;
   foShowToast('Status updated ✓', '#6D5BA6');
+  renderWS();
+};
+
+window.cycleCampStatus = function(eid2, campName) {
+  const statuses = ['Active','Pending','Draft','Ready','Paused','Complete'];
+  const camp = CAMP_DATA[eid2]?.campaigns.find(cp => cp.name === campName);
+  if (!camp) return;
+  const idx = statuses.indexOf(camp.status);
+  camp.status = statuses[(idx + 1) % statuses.length];
+  foShowToast('Status → ' + camp.status, '#6D5BA6');
   renderWS();
 };
 
