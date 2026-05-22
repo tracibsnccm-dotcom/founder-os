@@ -1054,7 +1054,7 @@ function campaignCC(eid2){
 
   // Active Campaigns Panel
   const campCards=d.campaigns.map(cp=>`
-<div style="padding:.75rem 1rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm);border-left:3px solid ${c};display:flex;flex-direction:column;gap:.35rem">
+<div style="padding:.75rem 1rem;background:var(--bg);border:3px solid red;border-radius:var(--rad-sm);border-left:3px solid ${c};display:flex;flex-direction:column;gap:.35rem">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
     <span style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">${cp.name}</span>
     ${campStatusSelect(eid2, cp.name, cp.status)}
