@@ -912,17 +912,6 @@ function renderWS(){
   const wsc=document.getElementById('wsc');
   wsc.innerHTML=fn?fn():`<div class="empty"><i class="ti ti-dots"></i><div class="empty-t">Coming soon</div></div>`;
   wsc.style.animation='none';void wsc.offsetHeight;wsc.style.animation='';
-  // Bind campaign status selects directly after HTML is written
-  wsc.querySelectorAll('.camp-status-sel').forEach(function(sel) {
-    sel.addEventListener('change', function() {
-      const camp = CAMP_DATA[this.dataset.eid]?.campaigns.find(cp => cp.name === this.dataset.camp);
-      if (camp) {
-        camp.status = this.value;
-        foShowToast('Status updated ✓', '#6D5BA6');
-        renderWS();
-      }
-    });
-  });
   document.querySelectorAll('.sop-sel').forEach(sel=>{
     sel.onchange=function(){
       const k=this.dataset.key,m=SM[this.value]||SM.ns;
@@ -1050,7 +1039,7 @@ function campStatusSelect(eid2, campName, current){
   const statuses=['Active','Pending','Draft','Ready','Paused','Complete'];
   const m={Active:'#166534',Pending:'#854d0e',Draft:'#64748b',Ready:'#1e40af',Paused:'#991b1b',Complete:'#15803d'};
   const opts=statuses.map(s=>`<option value="${s}"${s===current?' selected':''}>${s}</option>`).join('');
-  return`<select class="camp-status-sel" data-eid="${eid2}" data-camp="${campName}" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border:.5px solid #ddd;border-radius:20px;padding:2px 8px;font-family:var(--ff);color:${m[current]||m.Draft};background:#fff;cursor:pointer;outline:none">${opts}</select>`;
+  return`<select onchange="updateCampStatus(this)" data-eid="${eid2}" data-camp="${campName}" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border:.5px solid #ddd;border-radius:20px;padding:2px 8px;font-family:var(--ff);color:${m[current]||m.Draft};background:#fff;cursor:pointer;outline:none">${opts}</select>`;
 }
 function batchStatusBadge(s){
   const m={Active:'background:#dcfce7;color:#166534',Draft:'background:#f1f5f9;color:#64748b',Ready:'background:#dbeafe;color:#1e40af',Paused:'background:#fee2e2;color:#991b1b',Complete:'background:#e0f2fe;color:#0369a1'};
@@ -1673,6 +1662,13 @@ window.inlineEditNote = function(td, eid2, batchName) {
 };
 
 // Campaign status editing handled via native select in campStatusSelect()
+window.updateCampStatus = function(sel) {
+  const camp = CAMP_DATA[sel.dataset.eid]?.campaigns.find(cp => cp.name === sel.dataset.camp);
+  if (!camp) return;
+  camp.status = sel.value;
+  foShowToast('Status updated ✓', '#6D5BA6');
+  renderWS();
+};
 
 
 window.foShowToast = foShowToast;
