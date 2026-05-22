@@ -497,12 +497,8 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
       </div>
       <div class="fo-g2">
         <div class="fo-field">
-          <label class="fo-label">Cohort</label>
-          <select class="sd-i" id="bm-cohort">
-            <option>MWF-A</option><option>MWF-B</option><option>MWF-C</option>
-            <option>TTH-A</option><option>TTH-B</option><option>TTH-C</option>
-            <option>Custom</option>
-          </select>
+          <label class="fo-label">Batch Tag</label>
+          <input class="sd-i" id="bm-cohort" placeholder="e.g. MWF-A or Campaign 1">
         </div>
         <div class="fo-field">
           <label class="fo-label">Contact Count</label>
@@ -1154,7 +1150,7 @@ function campaignCC(eid2){
 <tr>
   <td style="font-family:var(--fm);font-size:10px;color:var(--t3);padding:.45rem .5rem">${b.name}</td>
   <td style="font-size:var(--ts-xs);padding:.45rem .5rem">${b.campaign}</td>
-  <td style="font-size:var(--ts-xs);color:var(--t3);padding:.45rem .5rem">${b.cohort}</td>
+  <td style="font-size:var(--ts-xs);color:var(--t3);padding:.45rem .5rem;cursor:pointer;min-width:80px" title="Click to edit batch tag" onclick="inlineEditBatchTag(this,'${eid2}',${bi})">${b.cohort||'<span style=\'color:var(--t3)\'>+ add tag</span>'}</td>
   <td style="font-size:var(--ts-xs);font-weight:600;padding:.45rem .5rem">${b.count}</td>
   <td style="padding:.45rem .5rem"><select onchange="updateBatchStatus('${eid2}',${bi},this.value)" style="${campSelectStyle(b.status)}">${campStatusOpts(b.status)}</select></td>
   <td style="font-size:var(--ts-xs);color:var(--t3);padding:.45rem .5rem">${b.date}</td>
@@ -1198,9 +1194,9 @@ ${bqCollapsed?`<div style="padding:.75rem 1rem;background:var(--bg);border:.5px 
   <div style="overflow-x:auto">
   <table class="ctbl" style="min-width:680px">
     <thead><tr style="background:var(--bg)">
-      <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Batch Name</th>
-      <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Campaign</th>
-      <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Cohort</th>
+      <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Campaign Name</th>
+      <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Campaign Type</th>
+      <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Batch Tag</th>
       <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Contacts</th>
       <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Status</th>
       <th style="padding:.4rem .5rem;font-size:var(--ts-xs);color:var(--t3);font-weight:600;text-align:left">Launch Date</th>
@@ -1671,6 +1667,30 @@ window.inlineEditNote = function(td, eid2, batchName) {
   inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } if (e.key === 'Escape') { inp.value = current; inp.blur(); } };
 };
 
+window.inlineEditBatchTag = function(td, eid2, batchIdx) {
+  if (td.querySelector('input')) return;
+  const batch = CAMP_DATA[eid2]?.batches[batchIdx];
+  if (!batch) return;
+  const current = batch.cohort || '';
+  const inp = document.createElement('input');
+  inp.value = current;
+  inp.style.cssText = 'font-size:10px;border:.5px solid var(--plum);border-radius:5px;padding:.2rem .35rem;width:100%;font-family:var(--ff);background:#fff;color:var(--t1);outline:none';
+  inp.placeholder = 'Add a tag...';
+  td.innerHTML = '';
+  td.appendChild(inp);
+  inp.focus();
+  const save = async () => {
+    const val = inp.value.trim();
+    batch.cohort = val;
+    td.innerHTML = val || '<span style="color:var(--t3)">+ add tag</span>';
+    const key = 'batch_tag_' + eid2 + '_' + batchIdx;
+    await dbUpsert('batch_tag', key, {status: val, title: batch.name, body: eid2});
+    foShowToast('Batch tag updated ✓','#6D5BA6');
+  };
+  inp.onblur = save;
+  inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } if (e.key === 'Escape') { inp.value = current; inp.blur(); } };
+};
+
 
 window.foShowToast = foShowToast;
 
@@ -1788,6 +1808,13 @@ async function loadFromSupabase(){
   // Restore quarterly focuses
   items.filter(i=>i.item_type==='quarterly_focus').reverse().forEach(i=>{
     hqState.quarterlyFocuses.push({id:i.id,title:i.title||'',quarter:(i.metadata&&i.metadata.quarter)||'Q2',entity:(i.metadata&&i.metadata.entity)||'Shared',notes:i.body||''});
+  });
+
+  // Restore batch tags
+  items.filter(i=>i.item_type==='batch_tag').forEach(i=>{
+    const parts=i.entity_key.replace('batch_tag_','').split('_');
+    const eid=parts[0],idx=+parts[1];
+    if(CAMP_DATA[eid]&&CAMP_DATA[eid].batches[idx])CAMP_DATA[eid].batches[idx].cohort=i.status||'';
   });
 
   // Restore campaign statuses
