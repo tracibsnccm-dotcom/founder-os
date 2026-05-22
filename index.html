@@ -1051,7 +1051,7 @@ function campaignCC(eid2){
 <div style="padding:.75rem 1rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm);border-left:3px solid ${c};display:flex;flex-direction:column;gap:.35rem">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
     <span style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">${cp.name}</span>
-    <span onclick="editCampStatus('${eid2}','${cp.name}',event)" style="cursor:pointer;user-select:none" title="Click to update status">${campStatusBadge(cp.status)}</span>
+    <span onclick="editCampStatus('${eid2}','${cp.name}',this)" style="cursor:pointer;user-select:none" title="Click to update status">${campStatusBadge(cp.status)}</span>
   </div>
   <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
     <span style="font-size:var(--ts-xs);color:var(--t3);background:var(--card);border:.5px solid var(--bdr);padding:2px 8px;border-radius:20px"><i class="ti ti-send" style="font-size:10px"></i> ${cp.platform}</span>
@@ -1655,10 +1655,8 @@ window.inlineEditNote = function(td, eid2, batchName) {
   inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } if (e.key === 'Escape') { inp.value = current; inp.blur(); } };
 };
 
-window.editCampStatus = function(eid2, campName, e) {
-  e.stopPropagation();
-  const wrapper = e.currentTarget;
-  if (wrapper.querySelector('select')) return; // already editing
+window.editCampStatus = function(eid2, campName, el) {
+  if (el.querySelector('select')) return; // already editing
   const camp = CAMP_DATA[eid2]?.campaigns.find(cp => cp.name === campName);
   if (!camp) return;
   const statuses = ['Active','Pending','Draft','Ready','Paused','Complete'];
@@ -1670,16 +1668,15 @@ window.editCampStatus = function(eid2, campName, e) {
     if (s === camp.status) opt.selected = true;
     sel.appendChild(opt);
   });
-  wrapper.innerHTML = '';
-  wrapper.appendChild(sel);
+  el.innerHTML = '';
+  el.appendChild(sel);
   sel.focus();
-  const commit = () => {
+  sel.onchange = () => {
     camp.status = sel.value;
     foShowToast('Status updated ✓', '#6D5BA6');
     renderWS();
   };
-  sel.onchange = commit;
-  sel.onblur = () => { if (!sel.onchangeFired) renderWS(); };
+  sel.onblur = () => renderWS();
 };
 
 
