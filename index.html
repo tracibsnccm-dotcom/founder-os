@@ -1030,9 +1030,12 @@ const CAMP_DATA={
 };
 
 // ── CAMPAIGN COMMAND CENTER RENDERER ─────────────────────────────
-function campStatusBadge(s){
+function campStatusBadge(s,eid2,campName){
   const m={Active:'background:#dcfce7;color:#166534',Pending:'background:#fef9c3;color:#854d0e',Draft:'background:#f1f5f9;color:#64748b',Ready:'background:#dbeafe;color:#1e40af',Paused:'background:#fee2e2;color:#991b1b',Complete:'background:#f0fdf4;color:#15803d'};
   const style=m[s]||m.Draft;
+  if(eid2&&campName){
+    return`<button type="button" onclick="window.cycleCampStatus('${eid2}','${campName}')" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:2px 7px;border-radius:20px;${style};border:none;cursor:pointer;font-family:inherit" title="Click to change status">${s}</button>`;
+  }
   return`<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:2px 7px;border-radius:20px;${style}">${s}</span>`;
 }
 function batchStatusBadge(s){
@@ -1051,7 +1054,7 @@ function campaignCC(eid2){
 <div style="padding:.75rem 1rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm);border-left:3px solid ${c};display:flex;flex-direction:column;gap:.35rem">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
     <span style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">${cp.name}</span>
-    ${campStatusBadge(cp.status)}
+    ${campStatusBadge(cp.status,eid2,cp.name)}
   </div>
   <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
     <span style="font-size:var(--ts-xs);color:var(--t3);background:var(--card);border:.5px solid var(--bdr);padding:2px 8px;border-radius:20px"><i class="ti ti-send" style="font-size:10px"></i> ${cp.platform}</span>
@@ -1655,6 +1658,16 @@ window.inlineEditNote = function(td, eid2, batchName) {
   inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } if (e.key === 'Escape') { inp.value = current; inp.blur(); } };
 };
 
+
+window.cycleCampStatus = function(eid2, campName) {
+  const statuses = ['Active','Pending','Draft','Ready','Paused','Complete'];
+  const camp = CAMP_DATA[eid2] && CAMP_DATA[eid2].campaigns.find(function(cp){ return cp.name === campName; });
+  if (!camp) return;
+  const idx = statuses.indexOf(camp.status);
+  camp.status = statuses[(idx + 1) % statuses.length];
+  foShowToast('Status → ' + camp.status, '#157272');
+  renderWS();
+};
 
 window.foShowToast = foShowToast;
 
