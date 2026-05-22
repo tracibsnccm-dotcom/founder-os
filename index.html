@@ -1040,6 +1040,10 @@ function batchStatusBadge(s){
   const style=m[s]||m.Draft;
   return`<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:2px 7px;border-radius:20px;${style}">${s}</span>`;
 }
+const CAMP_STATUS_STYLES={Active:'background:#dcfce7;color:#166534',Pending:'background:#fef9c3;color:#854d0e',Draft:'background:#f1f5f9;color:#64748b',Ready:'background:#dbeafe;color:#1e40af',Paused:'background:#fee2e2;color:#991b1b',Complete:'background:#f0fdf4;color:#15803d'};
+function campSelectStyle(s){return(CAMP_STATUS_STYLES[s]||CAMP_STATUS_STYLES.Draft)+';font-size:9px;font-weight:700;letter-spacing:.06em;padding:2px 7px;border-radius:20px;border:none;cursor:pointer;outline:none';}
+const CAMP_STATUS_OPTS=['Active','Pending','Draft','Ready','Paused','Complete'];
+function campStatusOpts(cur){return CAMP_STATUS_OPTS.map(s=>`<option value="${s}"${s===cur?' selected':''}>${s}</option>`).join('');}
 
 function campaignCC(eid2){
   const d=CAMP_DATA[eid2];
@@ -1047,11 +1051,11 @@ function campaignCC(eid2){
   const c=d.color;
 
   // Active Campaigns Panel
-  const campCards=d.campaigns.map(cp=>`
+  const campCards=d.campaigns.map((cp,ci)=>`
 <div style="padding:.75rem 1rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm);border-left:3px solid ${c};display:flex;flex-direction:column;gap:.35rem">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
     <span style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">${cp.name}</span>
-    ${campStatusBadge(cp.status)}
+    <select onchange="updateCampStatus('${eid2}',${ci},this.value)" style="${campSelectStyle(cp.status)}">${campStatusOpts(cp.status)}</select>
   </div>
   <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
     <span style="font-size:var(--ts-xs);color:var(--t3);background:var(--card);border:.5px solid var(--bdr);padding:2px 8px;border-radius:20px"><i class="ti ti-send" style="font-size:10px"></i> ${cp.platform}</span>
@@ -1146,16 +1150,16 @@ function campaignCC(eid2){
     return`<button onclick="setBqFilter('${eid2}','${f}')" style="padding:.3rem .75rem;font-size:10px;font-weight:${isActive?700:500};border:none;border-bottom:2px solid ${isActive?c:'transparent'};background:none;color:${isActive?c:'var(--t3)'};cursor:pointer;transition:all .1s;font-family:var(--ff)">${lbl} <span style="opacity:.7">(${cnt})</span></button>`;
   }).join('');
 
-  const filteredRows=filteredBatches.length?filteredBatches.map(b=>`
+  const filteredRows=filteredBatches.length?filteredBatches.map(b=>{const bi=d.batches.indexOf(b);return`
 <tr>
   <td style="font-family:var(--fm);font-size:10px;color:var(--t3);padding:.45rem .5rem">${b.name}</td>
   <td style="font-size:var(--ts-xs);padding:.45rem .5rem">${b.campaign}</td>
   <td style="font-size:var(--ts-xs);color:var(--t3);padding:.45rem .5rem">${b.cohort}</td>
   <td style="font-size:var(--ts-xs);font-weight:600;padding:.45rem .5rem">${b.count}</td>
-  <td style="padding:.45rem .5rem">${batchStatusBadge(b.status)}</td>
+  <td style="padding:.45rem .5rem"><select onchange="updateBatchStatus('${eid2}',${bi},this.value)" style="${campSelectStyle(b.status)}">${campStatusOpts(b.status)}</select></td>
   <td style="font-size:var(--ts-xs);color:var(--t3);padding:.45rem .5rem">${b.date}</td>
   <td style="font-size:var(--ts-xs);color:var(--t2);padding:.45rem .5rem;cursor:pointer;min-width:120px" title="Click to edit note" onclick="inlineEditNote(this,'${eid2}','${b.name}')">${b.notes||'<span style=\'color:var(--t3)\'>+ add note</span>'}</td>
-</tr>`).join(''):`<tr><td colspan="7" style="text-align:center;padding:1.25rem;color:var(--t3);font-size:var(--ts-xs)">No ${bqFilter==='all'?'':bqDefs.find(x=>x[0]===bqFilter)?.[1]?.toLowerCase()+' '}batches</td></tr>`;
+</tr>`;}).join(''):`<tr><td colspan="7" style="text-align:center;padding:1.25rem;color:var(--t3);font-size:var(--ts-xs)">No ${bqFilter==='all'?'':bqDefs.find(x=>x[0]===bqFilter)?.[1]?.toLowerCase()+' '}batches</td></tr>`;
 
   return`
 <div style="background:${c};border-radius:var(--rad-sm);padding:.65rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem">
@@ -1208,6 +1212,18 @@ ${bqCollapsed?`<div style="padding:.75rem 1rem;background:var(--bg);border:.5px 
 </div>`}`;
 }
 
+
+// ── CAMPAIGN STATUS UPDATERS ──────────────────────────────────────
+window.updateCampStatus=async function(eid,idx,val){
+  CAMP_DATA[eid].campaigns[idx].status=val;
+  await dbUpsert('camp_status','camp_status_'+eid+'_'+idx,{status:val,title:CAMP_DATA[eid].campaigns[idx].name,body:eid});
+  renderWS();
+};
+window.updateBatchStatus=async function(eid,idx,val){
+  CAMP_DATA[eid].batches[idx].status=val;
+  await dbUpsert('batch_status','batch_status_'+eid+'_'+idx,{status:val,title:CAMP_DATA[eid].batches[idx].name,body:eid});
+  renderWS();
+};
 
 // ── RENDERERS ──────────────────────────────────────────────────────────────────
 const R={};
@@ -1772,6 +1788,19 @@ async function loadFromSupabase(){
   // Restore quarterly focuses
   items.filter(i=>i.item_type==='quarterly_focus').reverse().forEach(i=>{
     hqState.quarterlyFocuses.push({id:i.id,title:i.title||'',quarter:(i.metadata&&i.metadata.quarter)||'Q2',entity:(i.metadata&&i.metadata.entity)||'Shared',notes:i.body||''});
+  });
+
+  // Restore campaign statuses
+  items.filter(i=>i.item_type==='camp_status').forEach(i=>{
+    const parts=i.entity_key.replace('camp_status_','').split('_');
+    const eid=parts[0],idx=+parts[1];
+    if(CAMP_DATA[eid]&&CAMP_DATA[eid].campaigns[idx])CAMP_DATA[eid].campaigns[idx].status=i.status||'Active';
+  });
+  // Restore batch statuses
+  items.filter(i=>i.item_type==='batch_status').forEach(i=>{
+    const parts=i.entity_key.replace('batch_status_','').split('_');
+    const eid=parts[0],idx=+parts[1];
+    if(CAMP_DATA[eid]&&CAMP_DATA[eid].batches[idx])CAMP_DATA[eid].batches[idx].status=i.status||'Active';
   });
 
   // Re-render current workspace to pick up restored state
