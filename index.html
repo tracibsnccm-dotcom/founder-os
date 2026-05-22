@@ -910,7 +910,10 @@ function renderWS(){
   const key=cfg.isHQ?'hq':(`${eid}_${(cfg.tabs||[])[tidx]||''}`).toLowerCase().replace(/ /g,'_');
   const fn=R[key]||R[eid+'_dashboard'];
   const wsc=document.getElementById('wsc');
-  wsc.innerHTML=fn?fn():`<div class="empty"><i class="ti ti-dots"></i><div class="empty-t">Coming soon</div></div>`;
+  const _html=fn?fn():`<div class="empty"><i class="ti ti-dots"></i><div class="empty-t">Coming soon</div></div>`;
+  console.log('renderWS key:',key,'| html length:',_html.length,'| first 200:',_html.substring(0,200));
+  wsc.innerHTML=_html;
+  console.log('wsc children after set:',wsc.children.length);<i class="ti ti-dots"></i><div class="empty-t">Coming soon</div></div>`;
   wsc.style.animation='none';void wsc.offsetHeight;wsc.style.animation='';
   document.querySelectorAll('.sop-sel').forEach(sel=>{
     sel.onchange=function(){
