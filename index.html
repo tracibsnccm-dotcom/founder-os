@@ -912,11 +912,15 @@ function renderWS(){
   const wsc=document.getElementById('wsc');
   wsc.innerHTML=fn?fn():`<div class="empty"><i class="ti ti-dots"></i><div class="empty-t">Coming soon</div></div>`;
   wsc.style.animation='none';void wsc.offsetHeight;wsc.style.animation='';
-  // Bind campaign status clicks directly after HTML is written
-  wsc.querySelectorAll('.camp-status-wrap').forEach(function(el) {
-    el.addEventListener('click', function(e) {
-      e.stopPropagation();
-      editCampStatus(el.dataset.eid, el.dataset.camp, el);
+  // Bind campaign status selects directly after HTML is written
+  wsc.querySelectorAll('.camp-status-sel').forEach(function(sel) {
+    sel.addEventListener('change', function() {
+      const camp = CAMP_DATA[this.dataset.eid]?.campaigns.find(cp => cp.name === this.dataset.camp);
+      if (camp) {
+        camp.status = this.value;
+        foShowToast('Status updated ✓', '#6D5BA6');
+        renderWS();
+      }
     });
   });
   document.querySelectorAll('.sop-sel').forEach(sel=>{
@@ -1042,6 +1046,12 @@ function campStatusBadge(s){
   const style=m[s]||m.Draft;
   return`<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:2px 7px;border-radius:20px;${style}">${s}</span>`;
 }
+function campStatusSelect(eid2, campName, current){
+  const statuses=['Active','Pending','Draft','Ready','Paused','Complete'];
+  const m={Active:'#166534',Pending:'#854d0e',Draft:'#64748b',Ready:'#1e40af',Paused:'#991b1b',Complete:'#15803d'};
+  const opts=statuses.map(s=>`<option value="${s}"${s===current?' selected':''}>${s}</option>`).join('');
+  return`<select class="camp-status-sel" data-eid="${eid2}" data-camp="${campName}" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border:.5px solid #ddd;border-radius:20px;padding:2px 8px;font-family:var(--ff);color:${m[current]||m.Draft};background:#fff;cursor:pointer;outline:none">${opts}</select>`;
+}
 function batchStatusBadge(s){
   const m={Active:'background:#dcfce7;color:#166534',Draft:'background:#f1f5f9;color:#64748b',Ready:'background:#dbeafe;color:#1e40af',Paused:'background:#fee2e2;color:#991b1b',Complete:'background:#e0f2fe;color:#0369a1'};
   const style=m[s]||m.Draft;
@@ -1058,7 +1068,7 @@ function campaignCC(eid2){
 <div style="padding:.75rem 1rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm);border-left:3px solid ${c};display:flex;flex-direction:column;gap:.35rem">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
     <span style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">${cp.name}</span>
-    <span class="camp-status-wrap" data-eid="${eid2}" data-camp="${cp.name}" style="cursor:pointer;user-select:none" title="Click to update status">${campStatusBadge(cp.status)}</span>
+    ${campStatusSelect(eid2, cp.name, cp.status)}
   </div>
   <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
     <span style="font-size:var(--ts-xs);color:var(--t3);background:var(--card);border:.5px solid var(--bdr);padding:2px 8px;border-radius:20px"><i class="ti ti-send" style="font-size:10px"></i> ${cp.platform}</span>
@@ -1662,31 +1672,7 @@ window.inlineEditNote = function(td, eid2, batchName) {
   inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } if (e.key === 'Escape') { inp.value = current; inp.blur(); } };
 };
 
-window.editCampStatus = function(eid2, campName, el) {
-  if (el.querySelector('select')) return; // already editing
-  const camp = CAMP_DATA[eid2]?.campaigns.find(cp => cp.name === campName);
-  if (!camp) return;
-  const statuses = ['Active','Pending','Draft','Ready','Paused','Complete'];
-  const sel = document.createElement('select');
-  sel.style.cssText = 'font-size:9px;font-weight:700;border:.5px solid var(--plum);border-radius:5px;padding:2px 5px;font-family:var(--ff);background:#fff;cursor:pointer;outline:none;letter-spacing:.05em';
-  statuses.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s; opt.textContent = s.toUpperCase();
-    if (s === camp.status) opt.selected = true;
-    sel.appendChild(opt);
-  });
-  el.innerHTML = '';
-  el.appendChild(sel);
-  sel.focus();
-  sel.onchange = () => {
-    camp.status = sel.value;
-    foShowToast('Status updated ✓', '#6D5BA6');
-    renderWS();
-  };
-  sel.onblur = () => renderWS();
-};
-
-// Campaign status editing handled via direct binding in renderWS()
+// Campaign status editing handled via native select in campStatusSelect()
 
 
 window.foShowToast = foShowToast;
