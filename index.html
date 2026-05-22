@@ -1035,13 +1035,6 @@ function campStatusBadge(s){
   const style=m[s]||m.Draft;
   return`<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:2px 7px;border-radius:20px;${style}">${s}</span>`;
 }
-function campStatusSelect(eid2, campName, current){
-  console.log('campStatusSelect:', eid2, campName, current);
-  const bg={Active:'#dcfce7',Pending:'#fef9c3',Draft:'#f1f5f9',Ready:'#dbeafe',Paused:'#fee2e2',Complete:'#f0fdf4'};
-  const fg={Active:'#166534',Pending:'#854d0e',Draft:'#64748b',Ready:'#1e40af',Paused:'#991b1b',Complete:'#15803d'};
-  const b=bg[current]||bg.Draft, f=fg[current]||fg.Draft;
-  return`<button type="button" onclick="window.cycleCampStatus('${eid2}','${campName}')" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:2px 8px;border-radius:20px;border:1.5px solid ${f};background:${b};color:${f};cursor:pointer;font-family:inherit">${current} ▼</button>`;
-}
 function batchStatusBadge(s){
   const m={Active:'background:#dcfce7;color:#166534',Draft:'background:#f1f5f9;color:#64748b',Ready:'background:#dbeafe;color:#1e40af',Paused:'background:#fee2e2;color:#991b1b',Complete:'background:#e0f2fe;color:#0369a1'};
   const style=m[s]||m.Draft;
@@ -1050,7 +1043,6 @@ function batchStatusBadge(s){
 
 function campaignCC(eid2){
   const d=CAMP_DATA[eid2];
-  console.log('campaignCC called for:', eid2, '| campaigns:', d ? d.campaigns.length : 'NO DATA');
   if(!d)return'';
   const c=d.color;
 
@@ -1059,7 +1051,7 @@ function campaignCC(eid2){
 <div style="padding:.75rem 1rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm);border-left:3px solid ${c};display:flex;flex-direction:column;gap:.35rem">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
     <span style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">${cp.name}</span>
-    ${campStatusSelect(eid2, cp.name, cp.status)}
+    ${campStatusBadge(cp.status)}
   </div>
   <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
     <span style="font-size:var(--ts-xs);color:var(--t3);background:var(--card);border:.5px solid var(--bdr);padding:2px 8px;border-radius:20px"><i class="ti ti-send" style="font-size:10px"></i> ${cp.platform}</span>
@@ -1175,7 +1167,7 @@ function campaignCC(eid2){
 </div>
 <div class="wg2" style="margin-bottom:1rem">
   <div>
-    <div class="wsh"><span class="wsbar" style="background:${c}"></span><span class="wsl">Active Campaigns <span style="font-size:9px;color:var(--t3);font-weight:400">(click status to edit)</span></span></div>
+    <div class="wsh"><span class="wsbar" style="background:${c}"></span><span class="wsl">Active Campaigns</span></div>
     <div style="display:flex;flex-direction:column;gap:.45rem">${campCards}</div>
   </div>
   <div>
@@ -1661,25 +1653,6 @@ window.inlineEditNote = function(td, eid2, batchName) {
   };
   inp.onblur = save;
   inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } if (e.key === 'Escape') { inp.value = current; inp.blur(); } };
-};
-
-// Campaign status editing handled via native select in campStatusSelect()
-window.updateCampStatus = function(sel) {
-  const camp = CAMP_DATA[sel.dataset.eid]?.campaigns.find(cp => cp.name === sel.dataset.camp);
-  if (!camp) return;
-  camp.status = sel.value;
-  foShowToast('Status updated ✓', '#6D5BA6');
-  renderWS();
-};
-
-window.cycleCampStatus = function(eid2, campName) {
-  const statuses = ['Active','Pending','Draft','Ready','Paused','Complete'];
-  const camp = CAMP_DATA[eid2]?.campaigns.find(cp => cp.name === campName);
-  if (!camp) return;
-  const idx = statuses.indexOf(camp.status);
-  camp.status = statuses[(idx + 1) % statuses.length];
-  foShowToast('Status → ' + camp.status, '#6D5BA6');
-  renderWS();
 };
 
 
