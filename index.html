@@ -1051,7 +1051,7 @@ function campaignCC(eid2){
 <div style="padding:.75rem 1rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm);border-left:3px solid ${c};display:flex;flex-direction:column;gap:.35rem">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
     <span style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">${cp.name}</span>
-    <span onclick="editCampStatus('${eid2}','${cp.name}',this)" style="cursor:pointer;user-select:none" title="Click to update status">${campStatusBadge(cp.status)}</span>
+    <span class="camp-status-wrap" data-eid="${eid2}" data-camp="${cp.name}" style="cursor:pointer;user-select:none" title="Click to update status">${campStatusBadge(cp.status)}</span>
   </div>
   <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
     <span style="font-size:var(--ts-xs);color:var(--t3);background:var(--card);border:.5px solid var(--bdr);padding:2px 8px;border-radius:20px"><i class="ti ti-send" style="font-size:10px"></i> ${cp.platform}</span>
@@ -1678,6 +1678,14 @@ window.editCampStatus = function(eid2, campName, el) {
   };
   sel.onblur = () => renderWS();
 };
+
+// Event delegation — catches camp-status-wrap clicks regardless of innerHTML rebuilds
+document.addEventListener('click', function(e) {
+  const wrap = e.target.closest('.camp-status-wrap');
+  if (!wrap) return;
+  e.stopPropagation();
+  editCampStatus(wrap.dataset.eid, wrap.dataset.camp, wrap);
+});
 
 
 window.foShowToast = foShowToast;
