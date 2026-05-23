@@ -1291,7 +1291,7 @@ R.hq=function(){
     +'</div>'
     +'<div class="wg2">'
       +'<div><div class="wsh"><span class="wsbar"></span><span class="wsl">SOP progress</span></div>'+sopTracker()+'</div>'
-      +'<div><div class="wsh"><span class="wsbar"></span><span class="wsl">Recent decisions</span></div><div class="dlog">'+decisionLog(3)+'</div></div>'
+      +'<div><div class="wsh"><span class="wsbar"></span><span class="wsl">Recent decisions</span></div><div class="dlog" id="home-dlog">'+decisionLog(3)+'</div></div>'
     +'</div>'
     +'<div class="wg2" style="margin-top:1.25rem">'
       +'<div><div class="wsh"><span class="wsbar"></span><span class="wsl">Monthly executive review</span></div>'+monthlyReviewPanel()+'</div>'
@@ -1572,6 +1572,7 @@ window.delD=async function(i){
   if(entry&&entry.id)await dbDelete(entry.id);
   decisions.splice(i,1);
   const dl=document.getElementById('dlog');if(dl)dl.innerHTML=decisionLog();
+  const hdl=document.getElementById('home-dlog');if(hdl)hdl.innerHTML=decisionLog(3);
 };
 
 // ── CAPTURE ───────────────────────────────────────────────────────
@@ -2139,4 +2140,5 @@ window.saveBatch=function(){
 </script>
 </body>
 </html>
+
 
