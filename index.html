@@ -825,11 +825,7 @@ const ECFG={
 
 // ── STATE ────────────────────────────────────────────────────────
 let eid='hq',tidx=0;
-let decisions=[
-  {d:'May 14',t:'Rebuild GHL campaigns MWF/TTH format',cat:'Operations',s:'Complete'},
-  {d:'May 13',t:'LinkedIn outreach tool — Snov.io vs Apollo',cat:'Marketing',s:'Review'},
-  {d:'May 12',t:'NurseBridge email platform decision',cat:'Operations',s:'Pending'},
-];
+let decisions=[];
 let sopData={lead:'ip',launch:'ns',content:'ns',outreach:'ns',review:'ns'};
 const SM={ns:{c:'b-pending',l:'Not started',bar:'0%',barClr:'var(--t3)'},ip:{c:'b-pending',l:'In progress',bar:'50%',barClr:'var(--g)'},cp:{c:'b-complete',l:'Complete',bar:'100%',barClr:'#15803D'}};
 const TRMAP={a:{l:'Do today',c:'b-blocked'},b:{l:'Schedule',c:'b-pending'},c:{l:'Delegate',c:'b-review'},d:{l:'Add to project',c:'b-pending'},e:{l:'Ignore',c:'b-pending'}};
@@ -1769,10 +1765,8 @@ async function loadFromSupabase(){
 
   // Restore decisions
   const decs=items.filter(i=>i.item_type==='decision');
-  if(decs.length){
-    decisions.length=0;
-    decs.reverse().forEach(i=>decisions.unshift({id:i.id,d:i.body||'',t:i.title||'',cat:i.category||'Operations',s:i.status||'Pending',notion_sync_status:i.notion_sync_status||'pending'}));
-  }
+  decisions.length=0;
+  decs.reverse().forEach(i=>decisions.unshift({id:i.id,d:i.body||'',t:i.title||'',cat:i.category||'Operations',s:i.status||'Pending',notion_sync_status:i.notion_sync_status||'pending'}));
 
   // Restore HQ priorities — rebuild entirely from Supabase
   // Sort by entity_key index so order is preserved
