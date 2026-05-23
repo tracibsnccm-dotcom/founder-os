@@ -1733,8 +1733,9 @@ window.foSaveHQ=async function(el,type,idx){
     });
     if(saved&&saved.id) notionSync(saved.id);
   } else if(type==='blocker'){
-    hqState.blockers[idx]=val;
-    const saved=await dbUpsert('blocker','hq_blocker_'+idx,{
+    var existingKey = (hqState.blockers[idx] && typeof hqState.blockers[idx]==='object') ? hqState.blockers[idx].key : ('hq_blocker_'+idx);
+    hqState.blockers[idx]={text:val, key:existingKey};
+    const saved=await dbUpsert('blocker',existingKey,{
       title:val,
       status:'In Progress',
       category:'Operations',
@@ -1797,7 +1798,7 @@ async function loadFromSupabase(){
       return parseInt(a.entity_key.replace('hq_blocker_','')) - parseInt(b.entity_key.replace('hq_blocker_',''));
     });
   if(savedBlockers.length > 0){
-    hqState.blockers = savedBlockers.map(function(i){ return i.title || ''; });
+    hqState.blockers = savedBlockers.map(function(i){ return {text: i.title || '', key: i.entity_key}; });
   }
   const ms=items.find(i=>i.item_type==='milestone'&&i.entity_key==='hq_milestone');
   if(ms&&ms.title)hqState.milestone=ms.title;
@@ -1909,7 +1910,7 @@ window.addBlocker = async function() {
     metadata: { entity: 'Shared', severity: 'Medium', owner: 'Traci Johnson' }
   });
   if (saved && saved.id) {
-    hqState.blockers.push(text);
+    hqState.blockers.push({text: text, key: key});
     foShowToast('Blocker saved ✓', '#157272');
     notionSync(saved.id);
     renderWS();
@@ -1919,9 +1920,13 @@ window.addBlocker = async function() {
 }
 
 window.delBlocker = async function(i) {
-  if(SB){
-    var res = await SB.from('founder_os_items').select('id').eq('item_type','blocker').eq('entity_key','hq_blocker_'+i).maybeSingle();
-    if(res && res.data && res.data.id) await dbDelete(res.data.id);
+  var blocker = hqState.blockers[i];
+  if(SB && blocker){
+    var entityKey = typeof blocker === 'string' ? 'hq_blocker_'+i : blocker.key;
+    if(entityKey){
+      var res = await SB.from('founder_os_items').select('id').eq('item_type','blocker').eq('entity_key',entityKey).maybeSingle();
+      if(res && res.data && res.data.id) await dbDelete(res.data.id);
+    }
   }
   hqState.blockers.splice(i,1);
   renderWS();
