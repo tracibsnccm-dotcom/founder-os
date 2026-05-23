@@ -365,6 +365,26 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .tw-row:hover .tw-del,.tw-block:hover .tw-del{opacity:1}
 .tw-del:hover{color:#B91C1C}
 .tw-hint{font-size:10px;color:var(--t3);font-style:italic;padding:.2rem 0}
+/* ── PROFIT RX & FINANCIALS ── */
+.rx-tbl{width:100%;border-collapse:collapse;font-size:var(--ts-xs)}
+.rx-tbl th{padding:.4rem .5rem;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);text-align:left;border-bottom:.5px solid var(--bdr);white-space:nowrap}
+.rx-tbl td{padding:.45rem .5rem;border-bottom:.5px solid rgba(0,0,0,.04);color:var(--t1);vertical-align:middle}
+.rx-tbl tbody tr:last-child td{border-bottom:none}
+.fin-stmt{background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad);overflow:hidden;margin-bottom:1.25rem}
+.fin-hdr{padding:.75rem 1rem;background:var(--card);border-bottom:.5px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.fin-title{font-size:var(--ts-sm);font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t1)}
+.fin-section{padding:.5rem 1rem;border-bottom:.5px solid var(--bdr)}
+.fin-section-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin:.5rem 0 .35rem}
+.fin-row{display:flex;align-items:center;gap:.5rem;padding:.25rem 0;font-size:var(--ts-xs)}
+.fin-row-lbl{flex:1;color:var(--t2)}
+.fin-row-amt{font-variant-numeric:tabular-nums;color:var(--t1);font-weight:500;min-width:90px;text-align:right}
+.fin-row-auto{color:var(--t3);font-style:italic}
+.fin-total{display:flex;justify-content:space-between;padding:.5rem 1rem;font-weight:700;font-size:var(--ts-sm);border-top:.5px solid var(--bdr)}
+.fin-input{border:.5px solid var(--bdr);border-radius:5px;padding:.2rem .4rem;font-size:var(--ts-xs);background:var(--card);color:var(--t1);font-family:var(--ff);width:100%;font-variant-numeric:tabular-nums}
+.fin-input:focus{outline:none;border-color:var(--g)}
+.fin-add-btn{font-size:10px;font-weight:600;color:var(--g);background:none;border:none;cursor:pointer;padding:.15rem 0;font-family:var(--ff)}
+.fin-del-btn{font-size:11px;color:var(--t3);background:none;border:none;cursor:pointer;padding:0 .2rem;font-family:var(--ff);flex-shrink:0}
+.fin-dl-btn{font-size:10px;font-weight:700;padding:.3rem .7rem;background:var(--t1);color:var(--bg);border:none;border-radius:var(--rad-sm);cursor:pointer;font-family:var(--ff);display:flex;align-items:center;gap:.35rem}
 </style>
 </head>
 <body>
@@ -519,7 +539,39 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
     </div>
   </div>
 </div>
+<!-- RCMS Service Modal -->
+<div class="fo-modal-ov" id="rcms-svc-modal" onclick="if(event.target===this)closeRcmsSvcModal()">
+  <div class="fo-modal" style="width:min(520px,94vw)">
+    <div class="fo-modal-hdr">
+      <div class="fo-modal-title" id="rcms-svc-modal-title">Add Service</div>
+      <button class="fo-modal-x" onclick="closeRcmsSvcModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="fo-modal-body">
+      <div class="fo-g2">
+        <div class="fo-field"><label class="fo-label">Service Name *</label><input class="sd-i" id="rsvc-name" placeholder="e.g. Case Management — Hourly"></div>
+        <div class="fo-field"><label class="fo-label">Service Type</label>
+          <select class="sd-i" id="rsvc-type"><option>Hourly</option><option>Per Case</option><option>Flat Fee</option><option>Retainer</option></select>
+        </div>
+      </div>
+      <div class="fo-g2">
+        <div class="fo-field"><label class="fo-label">Rate ($)</label><input class="sd-i" id="rsvc-rate" type="number" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="fo-field"><label class="fo-label">Overhead (%)</label><input class="sd-i" id="rsvc-overhead" type="number" min="0" max="100" step="1" placeholder="0"></div>
+      </div>
+      <div class="fo-g2">
+        <div class="fo-field"><label class="fo-label">Recommended Minimum ($)</label><input class="sd-i" id="rsvc-recmin" type="number" min="0" step="0.01" placeholder="Optional"></div>
+        <div class="fo-field"><label class="fo-label">Unit Label</label><input class="sd-i" id="rsvc-unit" placeholder="e.g. hr, case, month"></div>
+      </div>
+      <div class="fo-field"><label class="fo-label">Notes</label><input class="sd-i" id="rsvc-notes" placeholder="Optional — scope, conditions, caveats"></div>
+    </div>
+    <div class="fo-modal-foot">
+      <button class="fo-cancel" onclick="closeRcmsSvcModal()">Cancel</button>
+      <button class="fo-submit" onclick="saveRcmsSvc()">Save Service</button>
+    </div>
+  </div>
+</div>
+
 <!-- RCMS KPI Edit Modal -->
+
 <div class="fo-modal-ov" id="rcms-kpi-modal" onclick="if(event.target===this)closeRcmsKpi()">
   <div class="fo-modal" style="width:min(420px,94vw)">
     <div class="fo-modal-hdr">
@@ -832,7 +884,7 @@ function bdg(s){return`<span class="${BMAP[s]||'b-pending'}">${s==='Needs Renewa
 
 const ECFG={
   hq:{name:'Founder HQ',sub:'Executive overview',c:'gold',ic:'ti-layout-dashboard',isHQ:true},
-  rcms:{name:'RCMS',sub:'Executive portfolio',c:'#1A5C5C',ic:'ti-building',st:'a',sl:'Active',tabs:['Dashboard','Operations','Systems'],
+  rcms:{name:'RCMS',sub:'Executive portfolio',c:'#1A5C5C',ic:'ti-building',st:'a',sl:'Active',tabs:['Dashboard','Profit Rx','Financials','Operations','Systems'],
     stats:['5 entities','Parent entity']},
   nae:{name:'NAE',sub:'Nurses As Entrepreneurs',c:'#1D7A60',ic:'ti-heart-handshake',st:'a',sl:'Active',tabs:['Dashboard','Campaigns','Content','Systems'],
     stats:['12,000 queued','2 campaigns']},
@@ -852,7 +904,32 @@ const SM={ns:{c:'b-pending',l:'Not started',bar:'0%',barClr:'var(--t3)'},ip:{c:'
 const TRMAP={a:{l:'Do today',c:'b-blocked'},b:{l:'Schedule',c:'b-pending'},c:{l:'Delegate',c:'b-review'},d:{l:'Add to project',c:'b-pending'},e:{l:'Ignore',c:'b-pending'}};
 const kpiData=[...KPI_DEF];
 
-// ── HELPERS ──────────────────────────────────────────────────────
+// ── RCMS PROFIT RX DATA ──────────────────────────────────────────
+let rcmsServices=[];
+let rcmsBillingData={};
+let rcmsFinData={};
+const _rxMonthList=(()=>{
+  const arr=[];const d=new Date();
+  for(let i=0;i<18;i++){
+    const m=new Date(d.getFullYear(),d.getMonth()-i,1);
+    arr.push({val:m.getFullYear()+'-'+String(m.getMonth()+1).padStart(2,'0'),
+      lbl:m.toLocaleString('default',{month:'long'})+' '+m.getFullYear()});
+  }
+  return arr;
+})();
+let _rxMonth=_rxMonthList[0].val;
+let _rxSvcEditIdx=null;
+
+function rxBilling(){return rcmsBillingData[_rxMonth]||{};}
+function rxFin(t){return rcmsFinData[_rxMonth+'_'+t]||(t==='pl'?{other_income:[],expenses:[]}:t==='bs'?{cash:'',ar:'',other_current:'',equipment:'',other_fixed:'',ap:'',other_liab:'',loans:''}:{adjustments:[],investing:[],financing:[],beginning_cash:''});}
+function fmtUSD(n){const v=parseFloat(n)||0;return'$'+v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function rxRevenue(){
+  const b=rxBilling();let t=0;
+  rcmsServices.forEach(s=>{const r=b[s.id||s.name];if(r&&r.performed)t+=(parseFloat(r.quantity)||1)*(parseFloat(s.rate)||0);});
+  return t;
+}
+
+
 function pad(n){return String(n).padStart(2,'0')}
 function tds(){const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
 
@@ -1361,7 +1438,178 @@ ${sopTracker()}
 </div>
 </div>`;
 
-R.nae_dashboard=()=>`
+R.rcms_profit_rx=function(){
+  const b=rxBilling();
+  const moOpts=_rxMonthList.map(m=>`<option value="${m.val}"${m.val===_rxMonth?' selected':''}>${m.lbl}</option>`).join('');
+  const c='#1A5C5C';
+
+  const svcRows=rcmsServices.length?rcmsServices.map((s,i)=>{
+    const margin=s.overhead_pct?(100-parseFloat(s.overhead_pct)).toFixed(0)+'%':'—';
+    const health=s.overhead_pct?(parseFloat(s.overhead_pct)>70?'🔴 Review':(parseFloat(s.overhead_pct)>50?'🟡 Watch':'🟢 Healthy')):'—';
+    return`<tr>
+      <td style="font-weight:600;color:var(--t1)">${s.name}</td>
+      <td><span style="font-size:9px;font-weight:700;background:var(--card);padding:2px 7px;border-radius:20px;color:var(--t2)">${s.type}</span></td>
+      <td style="font-variant-numeric:tabular-nums">${fmtUSD(s.rate)}${s.unit?' /'+s.unit:''}</td>
+      <td>${s.overhead_pct||0}%</td>
+      <td style="font-variant-numeric:tabular-nums">${s.recommended_min?fmtUSD(s.recommended_min):'—'}</td>
+      <td>${health}</td>
+      <td><button onclick="openRcmsSvcModal(${i})" style="font-size:10px;color:var(--t2);background:none;border:.5px solid var(--bdr);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:var(--ff)">Edit</button>
+      <button onclick="deleteRcmsSvc(${i})" style="font-size:11px;color:#ef4444;background:none;border:none;cursor:pointer;margin-left:4px;font-family:var(--ff)">✕</button></td>
+    </tr>`;}).join('')
+    :`<tr><td colspan="7" style="text-align:center;padding:1.5rem;color:var(--t3)">No services yet — click + Add Service to begin</td></tr>`;
+
+  const billingRows=rcmsServices.length?rcmsServices.map(s=>{
+    const key=s.id||s.name;const row=b[key]||{performed:false,quantity:1};
+    const rev=row.performed?(parseFloat(row.quantity)||1)*(parseFloat(s.rate)||0):0;
+    return`<div style="display:flex;align-items:center;gap:.75rem;padding:.5rem .75rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm)${row.performed?';border-left:3px solid #22c55e':''}">
+      <input type="checkbox"${row.performed?' checked':''} onchange="rxToggleSvc('${key}',this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:#22c55e;flex-shrink:0">
+      <div style="flex:1"><div style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">${s.name}</div>
+        <div style="font-size:var(--ts-xs);color:var(--t3)">${s.type} · ${fmtUSD(s.rate)}${s.unit?' /'+s.unit:''}</div></div>
+      ${row.performed?`<div style="display:flex;align-items:center;gap:.35rem">
+        <input type="number" value="${row.quantity||1}" min="0.25" step="${s.type==='Hourly'?'0.25':'1'}" onchange="rxSetQty('${key}',this.value)" style="width:60px;border:.5px solid var(--bdr);border-radius:5px;padding:.2rem .4rem;font-size:var(--ts-xs);background:var(--card);color:var(--t1);font-family:var(--ff)">
+        <span style="font-size:var(--ts-xs);color:var(--t3)">${s.unit||'units'}</span>
+        <span style="font-size:var(--ts-sm);font-weight:700;color:#22c55e;min-width:80px;text-align:right;font-variant-numeric:tabular-nums">${fmtUSD(rev)}</span>
+      </div>`:`<span style="font-size:var(--ts-xs);color:var(--t3)">Not performed</span>`}
+    </div>`;}).join('')
+    :`<div style="text-align:center;padding:1.25rem;color:var(--t3);font-size:var(--ts-sm)">Add services to the catalog to begin monthly billing tracking</div>`;
+
+  const totalRev=rxRevenue();
+  const mLabel=_rxMonthList.find(m=>m.val===_rxMonth)?.lbl||_rxMonth;
+
+  return`<div style="margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem">
+<div><div style="font-size:17px;font-weight:700;color:var(--t1)">Profit Rx — Monthly</div>
+<div style="font-size:var(--ts-xs);color:var(--t3)">Service catalog · monthly billing · pricing health</div></div>
+<select onchange="rxChangeMonth(this.value)" style="border:.5px solid var(--bdr);border-radius:var(--rad-sm);padding:.35rem .65rem;font-size:var(--ts-sm);background:var(--card);color:var(--t1);font-family:var(--ff)">${moOpts}</select>
+</div>
+<div class="wsh"><span class="wsbar" style="background:${c}"></span><span class="wsl">Service Catalog</span>
+<button onclick="openRcmsSvcModal(null)" style="margin-left:auto;font-size:10px;font-weight:700;padding:.28rem .65rem;background:${c};color:#fff;border:none;border-radius:var(--rad-sm);cursor:pointer;font-family:var(--ff)">+ Add Service</button></div>
+<div style="overflow-x:auto;margin-bottom:1.5rem"><table class="rx-tbl">
+<thead><tr><th>Service</th><th>Type</th><th>Rate</th><th>Overhead</th><th>Rec. Min</th><th>Margin Health</th><th></th></tr></thead>
+<tbody id="rx-svc-tbody">${svcRows}</tbody></table></div>
+<div class="wsh"><span class="wsbar" style="background:${c}"></span><span class="wsl">Monthly Billing — ${mLabel}</span></div>
+<div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem">${billingRows}</div>
+${rcmsServices.length&&totalRev>0?`<div style="display:flex;justify-content:space-between;align-items:center;padding:.65rem 1rem;background:var(--card);border:.5px solid var(--bdr);border-radius:var(--rad-sm);border-left:3px solid ${c}">
+<span style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">Total Revenue — ${mLabel}</span>
+<span style="font-size:17px;font-weight:700;color:${c};font-variant-numeric:tabular-nums">${fmtUSD(totalRev)}</span></div>`:''}`;
+};
+
+R.rcms_financials=function(){
+  const mLabel=_rxMonthList.find(m=>m.val===_rxMonth)?.lbl||_rxMonth;
+  const pl=rxFin('pl');const bs=rxFin('bs');const cf=rxFin('cf');
+  const c='#1A5C5C';
+  const moOpts=_rxMonthList.map(m=>`<option value="${m.val}"${m.val===_rxMonth?' selected':''}>${m.lbl}</option>`).join('');
+
+  // P&L calculations
+  const svcRevenue=rxRevenue();
+  const otherIncome=pl.other_income.reduce((a,r)=>a+(parseFloat(r.amount)||0),0);
+  const totalRevenue=svcRevenue+otherIncome;
+  const totalExpenses=pl.expenses.reduce((a,r)=>a+(parseFloat(r.amount)||0),0);
+  const netIncome=totalRevenue-totalExpenses;
+
+  // Balance Sheet calculations
+  const totalAssets=(parseFloat(bs.cash)||0)+(parseFloat(bs.ar)||0)+(parseFloat(bs.other_current)||0)+(parseFloat(bs.equipment)||0)+(parseFloat(bs.other_fixed)||0);
+  const totalLiab=(parseFloat(bs.ap)||0)+(parseFloat(bs.other_liab)||0)+(parseFloat(bs.loans)||0);
+  const equity=totalAssets-totalLiab;
+
+  // Cash Flow calculations
+  const opAdj=cf.adjustments.reduce((a,r)=>a+(parseFloat(r.amount)||0),0);
+  const netOps=netIncome+opAdj;
+  const netInvesting=cf.investing.reduce((a,r)=>a+(parseFloat(r.amount)||0),0);
+  const netFinancing=cf.financing.reduce((a,r)=>a+(parseFloat(r.amount)||0),0);
+  const netChange=netOps+netInvesting+netFinancing;
+  const endingCash=(parseFloat(cf.beginning_cash)||0)+netChange;
+
+  function finRow(label,amt,isAuto=false,isNeg=false){
+    const color=isNeg&&amt<0?'#ef4444':isNeg===false&&amt>0?c:'var(--t1)';
+    return`<div class="fin-row"><span class="fin-row-lbl${isAuto?' fin-row-auto':''}">${label}</span><span class="fin-row-amt" style="color:${color}">${fmtUSD(amt)}</span></div>`;
+  }
+  function manualRows(type,section,rows){
+    return rows.map((r,i)=>`<div class="fin-row">
+      <input class="fin-input" value="${r.label||''}" placeholder="Description" onchange="rxFinRowUpdate('${type}','${section}',${i},'label',this.value)" style="flex:1;margin-right:.35rem">
+      <input class="fin-input" type="number" value="${r.amount||''}" placeholder="0.00" onchange="rxFinRowUpdate('${type}','${section}',${i},'amount',this.value)" style="width:90px">
+      <button class="fin-del-btn" onclick="rxFinRowDel('${type}','${section}',${i})">✕</button>
+    </div>`).join('');
+  }
+  function bsField(label,key,section){
+    return`<div class="fin-row"><span class="fin-row-lbl">${label}</span>
+      <input class="fin-input" type="number" value="${bs[key]||''}" placeholder="0.00" onchange="rxBsUpdate('${key}',this.value)" style="width:110px;text-align:right"></div>`;
+  }
+  function dlBtn(type,folder){
+    return`<button class="fin-dl-btn" onclick="rxDownload('${type}','${mLabel}','${folder}')"><i class="ti ti-download" style="font-size:11px"></i> Download</button>`;
+  }
+
+  const svcBilledRows=rcmsServices.filter(s=>{const r=rxBilling()[s.id||s.name];return r&&r.performed;})
+    .map(s=>{const r=rxBilling()[s.id||s.name];const rev=(parseFloat(r.quantity)||1)*(parseFloat(s.rate)||0);
+      return finRow(s.name+' ('+((parseFloat(r.quantity)||1))+' '+(s.unit||'units')+')',rev);}).join('');
+
+  return`<div style="margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem">
+<div><div style="font-size:17px;font-weight:700;color:var(--t1)">Financial Statements</div>
+<div style="font-size:var(--ts-xs);color:var(--t3)">Auto-populated from Profit Rx · manual additions supported · download to Drive</div></div>
+<select onchange="rxChangeMonth(this.value)" style="border:.5px solid var(--bdr);border-radius:var(--rad-sm);padding:.35rem .65rem;font-size:var(--ts-sm);background:var(--card);color:var(--t1);font-family:var(--ff)">${moOpts}</select>
+</div>
+
+<div class="fin-stmt">
+<div class="fin-hdr"><span class="fin-title">Profit & Loss — ${mLabel}</span>${dlBtn('pl','1E5-Cu1S-7isQaPr7BonjvOLqIz70b_nz')}</div>
+<div class="fin-section"><div class="fin-section-lbl">Revenue — Services (from Profit Rx)</div>
+${svcBilledRows||'<div class="fin-row"><span style="color:var(--t3);font-size:var(--ts-xs)">No services billed — complete Monthly Billing in Profit Rx tab</span></div>'}
+<div class="fin-section-lbl">Other Income</div>
+${manualRows('pl','other_income',pl.other_income)}
+<button class="fin-add-btn" onclick="rxFinRowAdd('pl','other_income')">+ Add income line</button>
+<div style="display:flex;justify-content:space-between;margin-top:.5rem;font-size:var(--ts-xs);font-weight:600">
+<span>Total Revenue</span><span style="color:${c};font-variant-numeric:tabular-nums">${fmtUSD(totalRevenue)}</span></div></div>
+<div class="fin-section"><div class="fin-section-lbl">Expenses</div>
+${manualRows('pl','expenses',pl.expenses)}
+<button class="fin-add-btn" onclick="rxFinRowAdd('pl','expenses')">+ Add expense</button>
+<div style="display:flex;justify-content:space-between;margin-top:.5rem;font-size:var(--ts-xs);font-weight:600">
+<span>Total Expenses</span><span style="color:#ef4444;font-variant-numeric:tabular-nums">${fmtUSD(totalExpenses)}</span></div></div>
+<div class="fin-total"><span>Net Income</span><span style="color:${netIncome>=0?c:'#ef4444'};font-variant-numeric:tabular-nums">${fmtUSD(netIncome)}</span></div>
+</div>
+
+<div class="fin-stmt">
+<div class="fin-hdr"><span class="fin-title">Balance Sheet — ${mLabel}</span>${dlBtn('bs','1ej4EuTfmxl12rRel4ug0sG1QrPymb7Oq')}</div>
+<div class="fin-section"><div class="fin-section-lbl">Current Assets</div>
+${bsField('Cash & Cash Equivalents','cash')}${bsField('Accounts Receivable','ar')}${bsField('Other Current Assets','other_current')}
+<div class="fin-section-lbl">Fixed Assets</div>
+${bsField('Equipment & Technology','equipment')}${bsField('Other Fixed Assets','other_fixed')}
+<div style="display:flex;justify-content:space-between;margin-top:.5rem;font-size:var(--ts-xs);font-weight:600">
+<span>Total Assets</span><span style="color:${c};font-variant-numeric:tabular-nums">${fmtUSD(totalAssets)}</span></div></div>
+<div class="fin-section"><div class="fin-section-lbl">Current Liabilities</div>
+${bsField('Accounts Payable','ap')}${bsField('Other Current Liabilities','other_liab')}
+<div class="fin-section-lbl">Long-Term Liabilities</div>
+${bsField('Loans & Notes Payable','loans')}
+<div style="display:flex;justify-content:space-between;margin-top:.5rem;font-size:var(--ts-xs);font-weight:600">
+<span>Total Liabilities</span><span style="color:#ef4444;font-variant-numeric:tabular-nums">${fmtUSD(totalLiab)}</span></div></div>
+<div class="fin-total"><span>Owner's Equity</span><span style="color:${equity>=0?c:'#ef4444'};font-variant-numeric:tabular-nums">${fmtUSD(equity)}</span></div>
+</div>
+
+<div class="fin-stmt">
+<div class="fin-hdr"><span class="fin-title">Cash Flow Statement — ${mLabel}</span>${dlBtn('cf','19n7e2yDidcUuUjsY4GsZ8XfVF1_SYCXC')}</div>
+<div class="fin-section"><div class="fin-section-lbl">Operating Activities</div>
+${finRow('Net Income (from P&L)',netIncome,true)}
+<div class="fin-section-lbl" style="font-size:8px">Adjustments to Net Income</div>
+${manualRows('cf','adjustments',cf.adjustments)}
+<button class="fin-add-btn" onclick="rxFinRowAdd('cf','adjustments')">+ Add adjustment</button>
+<div style="display:flex;justify-content:space-between;margin-top:.5rem;font-size:var(--ts-xs);font-weight:600">
+<span>Net Cash from Operations</span><span style="font-variant-numeric:tabular-nums">${fmtUSD(netOps)}</span></div></div>
+<div class="fin-section"><div class="fin-section-lbl">Investing Activities</div>
+${manualRows('cf','investing',cf.investing)}
+<button class="fin-add-btn" onclick="rxFinRowAdd('cf','investing')">+ Add item</button>
+<div style="display:flex;justify-content:space-between;margin-top:.5rem;font-size:var(--ts-xs);font-weight:600">
+<span>Net Cash from Investing</span><span style="font-variant-numeric:tabular-nums">${fmtUSD(netInvesting)}</span></div></div>
+<div class="fin-section"><div class="fin-section-lbl">Financing Activities</div>
+${manualRows('cf','financing',cf.financing)}
+<button class="fin-add-btn" onclick="rxFinRowAdd('cf','financing')">+ Add item</button>
+<div style="display:flex;justify-content:space-between;margin-top:.5rem;font-size:var(--ts-xs);font-weight:600">
+<span>Net Cash from Financing</span><span style="font-variant-numeric:tabular-nums">${fmtUSD(netFinancing)}</span></div></div>
+<div class="fin-section"><div class="fin-section-lbl">Cash Position</div>
+<div class="fin-row"><span class="fin-row-lbl">Beginning Cash Balance</span>
+<input class="fin-input" type="number" value="${cf.beginning_cash||''}" placeholder="0.00" onchange="rxCfUpdate('beginning_cash',this.value)" style="width:110px;text-align:right"></div>
+${finRow('Net Change in Cash',netChange,true)}</div>
+<div class="fin-total"><span>Ending Cash Balance</span><span style="color:${endingCash>=0?c:'#ef4444'};font-variant-numeric:tabular-nums">${fmtUSD(endingCash)}</span></div>
+</div>`;
+};
+
+
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.65rem;margin-bottom:1.25rem">
 <div class="hqm"><div class="hqm-l">Active batches</div><div class="hqm-v">5</div></div>
 <div class="hqm"><div class="hqm-l">In sequence</div><div class="hqm-v">11,700</div></div>
@@ -1595,7 +1843,140 @@ window.delD=async function(i){
   const hdl=document.getElementById('home-dlog');if(hdl)hdl.innerHTML=decisionLog(3);
 };
 
-// ── RCMS PARENT KPI ───────────────────────────────────────────────
+// ── RCMS PROFIT RX FUNCTIONS ─────────────────────────────────────
+window.rxChangeMonth=function(v){_rxMonth=v;renderWS();};
+
+window.openRcmsSvcModal=function(idx){
+  _rxSvcEditIdx=idx;
+  const s=idx!==null&&idx!==undefined?rcmsServices[idx]:null;
+  document.getElementById('rcms-svc-modal-title').textContent=s?'Edit Service':'Add Service';
+  document.getElementById('rsvc-name').value=s?s.name:'';
+  document.getElementById('rsvc-type').value=s?s.type:'Hourly';
+  document.getElementById('rsvc-rate').value=s?s.rate:'';
+  document.getElementById('rsvc-overhead').value=s?s.overhead_pct:'';
+  document.getElementById('rsvc-recmin').value=s?s.recommended_min:'';
+  document.getElementById('rsvc-unit').value=s?s.unit:'';
+  document.getElementById('rsvc-notes').value=s?s.notes:'';
+  document.getElementById('rcms-svc-modal').classList.add('open');
+};
+window.closeRcmsSvcModal=function(){document.getElementById('rcms-svc-modal').classList.remove('open');_rxSvcEditIdx=null;};
+window.saveRcmsSvc=async function(){
+  const name=document.getElementById('rsvc-name').value.trim();
+  if(!name)return;
+  const svc={name,type:document.getElementById('rsvc-type').value,
+    rate:parseFloat(document.getElementById('rsvc-rate').value)||0,
+    overhead_pct:parseFloat(document.getElementById('rsvc-overhead').value)||0,
+    recommended_min:parseFloat(document.getElementById('rsvc-recmin').value)||0,
+    unit:document.getElementById('rsvc-unit').value.trim(),
+    notes:document.getElementById('rsvc-notes').value.trim(),id:null};
+  const eIdx=_rxSvcEditIdx;
+  if(eIdx!==null&&eIdx!==undefined){
+    svc.id=rcmsServices[eIdx].id;
+    rcmsServices[eIdx]=svc;
+    if(svc.id)await dbUpsert('rcms_service','rcms_svc_'+svc.id,{title:svc.name,body:JSON.stringify(svc)});
+  } else {
+    const saved=await dbInsert({item_type:'rcms_service',title:svc.name,body:JSON.stringify(svc)});
+    if(saved){svc.id=saved.id;}
+    rcmsServices.push(svc);
+  }
+  closeRcmsSvcModal();renderWS();
+};
+window.deleteRcmsSvc=async function(i){
+  const s=rcmsServices[i];
+  if(s&&s.id)await dbDelete(s.id);
+  rcmsServices.splice(i,1);renderWS();
+};
+
+window.rxToggleSvc=async function(key,checked){
+  if(!rcmsBillingData[_rxMonth])rcmsBillingData[_rxMonth]={};
+  if(!rcmsBillingData[_rxMonth][key])rcmsBillingData[_rxMonth][key]={performed:false,quantity:1};
+  rcmsBillingData[_rxMonth][key].performed=checked;
+  await rxSaveBilling();renderWS();
+};
+window.rxSetQty=async function(key,qty){
+  if(!rcmsBillingData[_rxMonth])rcmsBillingData[_rxMonth]={};
+  if(!rcmsBillingData[_rxMonth][key])rcmsBillingData[_rxMonth][key]={performed:true,quantity:1};
+  rcmsBillingData[_rxMonth][key].quantity=parseFloat(qty)||1;
+  await rxSaveBilling();
+};
+async function rxSaveBilling(){
+  await dbUpsert('rcms_billing','rcms_billing_'+_rxMonth,{title:'Billing '+_rxMonth,body:JSON.stringify(rcmsBillingData[_rxMonth]||{})});
+}
+
+// Financial statement functions
+window.rxFinRowAdd=function(type,section){
+  const fin=rxFin(type);
+  if(!rcmsFinData[_rxMonth+'_'+type])rcmsFinData[_rxMonth+'_'+type]=fin;
+  rcmsFinData[_rxMonth+'_'+type][section].push({label:'',amount:''});
+  renderWS();
+};
+window.rxFinRowDel=function(type,section,i){
+  if(rcmsFinData[_rxMonth+'_'+type])rcmsFinData[_rxMonth+'_'+type][section].splice(i,1);
+  rxSaveFin(type);renderWS();
+};
+window.rxFinRowUpdate=function(type,section,i,field,val){
+  if(!rcmsFinData[_rxMonth+'_'+type])rcmsFinData[_rxMonth+'_'+type]=rxFin(type);
+  rcmsFinData[_rxMonth+'_'+type][section][i][field]=val;
+  rxSaveFin(type);
+};
+window.rxBsUpdate=function(key,val){
+  if(!rcmsFinData[_rxMonth+'_bs'])rcmsFinData[_rxMonth+'_bs']=rxFin('bs');
+  rcmsFinData[_rxMonth+'_bs'][key]=val;
+  rxSaveFin('bs');renderWS();
+};
+window.rxCfUpdate=function(key,val){
+  if(!rcmsFinData[_rxMonth+'_cf'])rcmsFinData[_rxMonth+'_cf']=rxFin('cf');
+  rcmsFinData[_rxMonth+'_cf'][key]=val;
+  rxSaveFin('cf');renderWS();
+};
+async function rxSaveFin(type){
+  const data=rcmsFinData[_rxMonth+'_'+type]||rxFin(type);
+  await dbUpsert('rcms_financial','rcms_fin_'+_rxMonth+'_'+type,{title:'Financial '+type.toUpperCase()+' '+_rxMonth,body:JSON.stringify(data)});
+}
+
+// Download statement as CSV and open Drive folder
+window.rxDownload=function(type,mLabel,folderId){
+  const pl=rxFin('pl');const bs=rxFin('bs');const cf=rxFin('cf');
+  const svcRevenue=rxRevenue();
+  const totalExpenses=pl.expenses.reduce((a,r)=>a+(parseFloat(r.amount)||0),0);
+  const netIncome=svcRevenue+pl.other_income.reduce((a,r)=>a+(parseFloat(r.amount)||0),0)-totalExpenses;
+  let csv='';
+  if(type==='pl'){
+    csv='PROFIT & LOSS STATEMENT — '+mLabel+'\n\n';
+    csv+='REVENUE\n';
+    rcmsServices.forEach(s=>{const r=rxBilling()[s.id||s.name];if(r&&r.performed){const rev=(parseFloat(r.quantity)||1)*(parseFloat(s.rate)||0);csv+=s.name+','+rev.toFixed(2)+'\n';}});
+    pl.other_income.forEach(r=>{if(r.label)csv+=(r.label)+','+(parseFloat(r.amount)||0).toFixed(2)+'\n';});
+    csv+='Total Revenue,'+(svcRevenue+pl.other_income.reduce((a,r)=>a+(parseFloat(r.amount)||0),0)).toFixed(2)+'\n\nEXPENSES\n';
+    pl.expenses.forEach(r=>{if(r.label)csv+=(r.label)+','+(parseFloat(r.amount)||0).toFixed(2)+'\n';});
+    csv+='Total Expenses,'+totalExpenses.toFixed(2)+'\n\nNET INCOME,'+netIncome.toFixed(2)+'\n';
+  } else if(type==='bs'){
+    const ta=(parseFloat(bs.cash)||0)+(parseFloat(bs.ar)||0)+(parseFloat(bs.other_current)||0)+(parseFloat(bs.equipment)||0)+(parseFloat(bs.other_fixed)||0);
+    const tl=(parseFloat(bs.ap)||0)+(parseFloat(bs.other_liab)||0)+(parseFloat(bs.loans)||0);
+    csv='BALANCE SHEET — '+mLabel+'\n\nASSETS\n';
+    csv+='Cash & Cash Equivalents,'+(parseFloat(bs.cash)||0).toFixed(2)+'\nAccounts Receivable,'+(parseFloat(bs.ar)||0).toFixed(2)+'\nOther Current Assets,'+(parseFloat(bs.other_current)||0).toFixed(2)+'\nEquipment,'+(parseFloat(bs.equipment)||0).toFixed(2)+'\nOther Fixed Assets,'+(parseFloat(bs.other_fixed)||0).toFixed(2)+'\nTotal Assets,'+ta.toFixed(2)+'\n\nLIABILITIES\n';
+    csv+='Accounts Payable,'+(parseFloat(bs.ap)||0).toFixed(2)+'\nOther Current Liabilities,'+(parseFloat(bs.other_liab)||0).toFixed(2)+'\nLoans,'+(parseFloat(bs.loans)||0).toFixed(2)+'\nTotal Liabilities,'+tl.toFixed(2)+'\n\nOWNERS EQUITY,'+(ta-tl).toFixed(2)+'\n';
+  } else {
+    const netOps=netIncome+cf.adjustments.reduce((a,r)=>a+(parseFloat(r.amount)||0),0);
+    const netInv=cf.investing.reduce((a,r)=>a+(parseFloat(r.amount)||0),0);
+    const netFin=cf.financing.reduce((a,r)=>a+(parseFloat(r.amount)||0),0);
+    const netChg=netOps+netInv+netFin;
+    csv='CASH FLOW STATEMENT — '+mLabel+'\n\nOPERATING ACTIVITIES\nNet Income,'+netIncome.toFixed(2)+'\n';
+    cf.adjustments.forEach(r=>{if(r.label)csv+=r.label+','+(parseFloat(r.amount)||0).toFixed(2)+'\n';});
+    csv+='Net Cash from Operations,'+netOps.toFixed(2)+'\n\nINVESTING ACTIVITIES\n';
+    cf.investing.forEach(r=>{if(r.label)csv+=r.label+','+(parseFloat(r.amount)||0).toFixed(2)+'\n';});
+    csv+='Net Cash from Investing,'+netInv.toFixed(2)+'\n\nFINANCING ACTIVITIES\n';
+    cf.financing.forEach(r=>{if(r.label)csv+=r.label+','+(parseFloat(r.amount)||0).toFixed(2)+'\n';});
+    csv+='Net Cash from Financing,'+netFin.toFixed(2)+'\n\nBeginning Cash Balance,'+(parseFloat(cf.beginning_cash)||0).toFixed(2)+'\nNet Change in Cash,'+netChg.toFixed(2)+'\nEnding Cash Balance,'+((parseFloat(cf.beginning_cash)||0)+netChg).toFixed(2)+'\n';
+  }
+  const fileName='RCMS_'+type.toUpperCase()+'_'+_rxMonth+'.csv';
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fileName;a.click();
+  setTimeout(()=>window.open('https://drive.google.com/drive/folders/'+folderId,'_blank'),500);
+  foShowToast('Downloaded — Drive folder opening to upload','#1A5C5C');
+};
+
+// ── RCMS KPI ───────────────────────────────────────────────────────
+
 let _rcmsKpiIdx=null;
 window.openRcmsKpi=function(i){
   _rcmsKpiIdx=i;
@@ -1803,6 +2184,24 @@ async function loadFromSupabase(){
   items.filter(i=>i.item_type==='sop_status').forEach(i=>{
     const k=i.entity_key.replace('sop_','');
     if(k in sopData)sopData[k]=i.status||'ns';
+  });
+
+  // Restore RCMS services
+  rcmsServices=[];
+  items.filter(i=>i.item_type==='rcms_service').forEach(i=>{
+    try{const s=JSON.parse(i.body||'{}');s.id=i.id;rcmsServices.push(s);}catch(e){}
+  });
+
+  // Restore RCMS billing data
+  items.filter(i=>i.item_type==='rcms_billing').forEach(i=>{
+    const month=i.entity_key.replace('rcms_billing_','');
+    try{rcmsBillingData[month]=JSON.parse(i.body||'{}');}catch(e){}
+  });
+
+  // Restore RCMS financial data
+  items.filter(i=>i.item_type==='rcms_financial').forEach(i=>{
+    const key=i.entity_key.replace('rcms_fin_','');
+    try{rcmsFinData[key]=JSON.parse(i.body||'{}');}catch(e){}
   });
 
   // Restore RCMS parent KPIs
