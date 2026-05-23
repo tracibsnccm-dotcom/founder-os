@@ -1151,7 +1151,9 @@ function campaignCC(eid2){
   // Batch queue filter state per entity
   window._bqFilter=window._bqFilter||{};
   window._bqCollapsed=window._bqCollapsed||{};
-  const bqFilter=window._bqFilter[eid2]||'active';
+  // Default to 'all' if no active/ready batches so content is always visible
+  const hasActive=d.batches.some(b=>['Active','Ready'].includes(b.status));
+  const bqFilter=window._bqFilter[eid2]||(hasActive?'active':'all');
   const bqCollapsed=!!window._bqCollapsed[eid2];
   const bqDefs=[['active','Active / Ready'],['draft','Draft'],['complete','Complete'],['all','All']];
 
