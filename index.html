@@ -378,19 +378,8 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
   </div>
   <div class="sd-body">
     <div>
-      <div class="sd-sec">Campaigns</div>
-      <div class="sd-f"><label>Active campaigns</label><input class="sd-i" id="sk0" type="text"></div>
-      <div class="sd-f"><label>Contacts queued</label><input class="sd-i" id="sk1" type="text"></div>
-    </div>
-    <div>
-      <div class="sd-sec">Email performance</div>
-      <div class="sd-f"><label>Open rate</label><input class="sd-i" id="sk2" type="text" placeholder="e.g. 24.3%"></div>
-      <div class="sd-f"><label>Click rate</label><input class="sd-i" id="sk3" type="text" placeholder="e.g. 4.1%"></div>
-    </div>
-    <div>
-      <div class="sd-sec">Deliverability</div>
-      <div class="sd-f"><label>Bounce rate</label><input class="sd-i" id="sk4" type="text" placeholder="e.g. 1.2%"></div>
-      <div class="sd-f"><label>Verified contacts</label><input class="sd-i" id="sk5" type="text" placeholder="e.g. 8,400"></div>
+      <div class="sd-sec">RCMS Health KPIs</div>
+      <div style="font-size:var(--ts-xs);color:var(--t3);padding:.25rem 0 .5rem">Click any KPI card on the home page to update its status and notes.</div>
     </div>
   </div>
   <div>
@@ -530,9 +519,36 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
     </div>
   </div>
 </div>
+<!-- RCMS KPI Edit Modal -->
+<div class="fo-modal-ov" id="rcms-kpi-modal" onclick="if(event.target===this)closeRcmsKpi()">
+  <div class="fo-modal" style="width:min(420px,94vw)">
+    <div class="fo-modal-hdr">
+      <div class="fo-modal-title" id="rcms-kpi-title">Update KPI</div>
+      <button class="fo-modal-x" onclick="closeRcmsKpi()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="fo-modal-body">
+      <div class="fo-field">
+        <label class="fo-label">Status</label>
+        <select class="sd-i" id="rcms-kpi-status">
+          <option value="Good">Good</option>
+          <option value="Watch">Watch</option>
+          <option value="Critical">Critical</option>
+          <option value="Pending" selected>Pending</option>
+        </select>
+      </div>
+      <div class="fo-field">
+        <label class="fo-label">Notes</label>
+        <textarea class="sd-i" id="rcms-kpi-note" rows="4" style="resize:vertical;font-family:var(--ff)" placeholder="Add context, amounts, dates, reminders..."></textarea>
+      </div>
+    </div>
+    <div class="fo-modal-foot">
+      <button class="fo-cancel" onclick="closeRcmsKpi()">Cancel</button>
+      <button class="fo-submit" onclick="saveRcmsKpi()">Save</button>
+    </div>
+  </div>
+</div>
 
 
-<div class="shell">
 
   <!-- HEADER -->
   <div class="hdr">
@@ -782,11 +798,16 @@ const DOW={
   6:{l:'Lead Generation',f:'Apollo · ZeroBounce · list prep'}
 };
 
-const KPI_DEF=[
-  {k:'Active campaigns',v:'2'},{k:'Contacts queued',v:'11,700'},
-  {k:'Open rate',v:'—'},{k:'Click rate',v:'—'},
-  {k:'Bounce rate',v:'—'},{k:'Verified contacts',v:'—'}
+const RCMS_KPI_DEF=[
+  {k:'Active clients',status:'Pending',note:''},
+  {k:'Open invoices',status:'Pending',note:''},
+  {k:'Next bill due',status:'Pending',note:''},
+  {k:'Monthly financials',status:'Pending',note:''},
+  {k:'Insurance renewal',status:'Pending',note:''},
+  {k:'Cash flow',status:'Pending',note:''}
 ];
+let rcmsKpi=RCMS_KPI_DEF.map(d=>({...d}));
+const KPI_DEF=rcmsKpi;
 
 
 // HQ editable state (loaded from Supabase on startup)
@@ -842,13 +863,25 @@ document.getElementById('hf').textContent=cd.f;
 function upd(){const t=new Date(),h=t.getHours(),m=t.getMinutes();document.getElementById('ht').textContent=(h%12||12)+':'+pad(m)+' '+(h>=12?'PM':'AM');}
 upd();setInterval(upd,30000);
 
-// KPI strip
-const kr=document.getElementById('krow');
-kpiData.forEach((k,i)=>{
-  const d=document.createElement('div');d.className='kpi-c';d.onclick=()=>window.openSd();
-  d.innerHTML=`<div class="kpi-l">${k.k}</div><div class="kpi-v" id="kv${i}">${k.v}</div>`;
-  kr.appendChild(d);
-});
+// KPI strip — RCMS parent health
+const RCMS_STATUS_CLR={Good:'#22c55e',Watch:'#f59e0b',Critical:'#ef4444',Pending:'rgba(255,255,255,0.25)'};
+function renderKpiStrip(){
+  const kr=document.getElementById('krow');
+  if(!kr)return;
+  kr.innerHTML='';
+  rcmsKpi.forEach((k,i)=>{
+    const dot=`<span style="width:7px;height:7px;border-radius:50%;background:${RCMS_STATUS_CLR[k.status]||RCMS_STATUS_CLR.Pending};flex-shrink:0;display:inline-block"></span>`;
+    const noteText=k.note?k.note:'<span style="opacity:.4">No notes</span>';
+    const d=document.createElement('div');
+    d.className='kpi-c';
+    d.onclick=()=>openRcmsKpi(i);
+    d.innerHTML=`<div class="kpi-l">${k.k}</div>`
+      +`<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.25rem">${dot}<span style="font-size:13px;font-weight:600;color:#fff">${k.status}</span></div>`
+      +`<div id="kpi-note-${i}" style="font-size:10px;color:rgba(255,255,255,.38);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${noteText}</div>`;
+    kr.appendChild(d);
+  });
+}
+renderKpiStrip();
 
 // Entity nav
 const enEl=document.getElementById('EN');
@@ -1482,7 +1515,6 @@ document.addEventListener('click',function(e){
 
 // ── SETTINGS ──────────────────────────────────────────────────────
 window.openSd=function(){
-  kpiData.forEach((k,i)=>{const el=document.getElementById('sk'+i);if(el)el.value=k.v;});
   // Populate Supabase fields
   const urlEl=document.getElementById('fo-sb-url');
   const keyEl=document.getElementById('fo-sb-key');
@@ -1506,16 +1538,6 @@ window.closeSd=function(){
   document.getElementById('sd-drw').classList.remove('open');
 };
 window.saveSd=async function(){
-  // Save KPI values
-  kpiData.forEach((k,i)=>{
-    const el=document.getElementById('sk'+i);
-    if(el&&el.value){
-      k.v=el.value;
-      const kv=document.getElementById('kv'+i);
-      if(kv)kv.textContent=k.v;
-      dbUpsert('kpi','kpi_'+i,{title:k.k,body:k.v});
-    }
-  });
   // Save + connect Supabase credentials
   const urlEl=document.getElementById('fo-sb-url');
   const keyEl=document.getElementById('fo-sb-key');
@@ -1569,6 +1591,31 @@ window.delD=async function(i){
   decisions.splice(i,1);
   const dl=document.getElementById('dlog');if(dl)dl.innerHTML=decisionLog();
   const hdl=document.getElementById('home-dlog');if(hdl)hdl.innerHTML=decisionLog(3);
+};
+
+// ── RCMS PARENT KPI ───────────────────────────────────────────────
+let _rcmsKpiIdx=null;
+window.openRcmsKpi=function(i){
+  _rcmsKpiIdx=i;
+  const k=rcmsKpi[i];
+  document.getElementById('rcms-kpi-title').textContent=k.k;
+  document.getElementById('rcms-kpi-status').value=k.status||'Pending';
+  document.getElementById('rcms-kpi-note').value=k.note||'';
+  document.getElementById('rcms-kpi-modal').classList.add('open');
+};
+window.closeRcmsKpi=function(){
+  document.getElementById('rcms-kpi-modal').classList.remove('open');
+  _rcmsKpiIdx=null;
+};
+window.saveRcmsKpi=async function(){
+  if(_rcmsKpiIdx===null)return;
+  const status=document.getElementById('rcms-kpi-status').value;
+  const note=document.getElementById('rcms-kpi-note').value.trim();
+  rcmsKpi[_rcmsKpiIdx].status=status;
+  rcmsKpi[_rcmsKpiIdx].note=note;
+  renderKpiStrip();
+  await dbUpsert('rcms_kpi','rcms_kpi_'+_rcmsKpiIdx,{title:rcmsKpi[_rcmsKpiIdx].k,status,body:note});
+  closeRcmsKpi();
 };
 
 // ── CAPTURE ───────────────────────────────────────────────────────
@@ -1756,12 +1803,15 @@ async function loadFromSupabase(){
     if(k in sopData)sopData[k]=i.status||'ns';
   });
 
-  // Restore KPI values
-  items.filter(i=>i.item_type==='kpi').forEach(i=>{
-    const idx=parseInt(i.entity_key.replace('kpi_',''));
-    if(kpiData[idx]&&i.body)kpiData[idx].v=i.body;
+  // Restore RCMS parent KPIs
+  items.filter(i=>i.item_type==='rcms_kpi').forEach(i=>{
+    const idx=parseInt(i.entity_key.replace('rcms_kpi_',''));
+    if(rcmsKpi[idx]){
+      rcmsKpi[idx].status=i.status||'Pending';
+      rcmsKpi[idx].note=i.body||'';
+    }
   });
-  kpiData.forEach((k,i)=>{const kv=document.getElementById('kv'+i);if(kv)kv.textContent=k.v;});
+  renderKpiStrip();
 
   // Restore decisions
   const decs=items.filter(i=>i.item_type==='decision');
