@@ -1068,6 +1068,15 @@ function selE(id){
 }
 function selT(i){tidx=i;renderWS();}
 
+// foRender — re-renders current tab in place (used by sub-tabs)
+function foRender(){
+  const wsc=document.getElementById('wsc');
+  const cfg=ECFG[eid];
+  const key=cfg.isHQ?'hq':(`${eid}_${(cfg.tabs||[])[tidx]||''}`).toLowerCase().replace(/ /g,'_');
+  const fn=R[key]||R[eid+'_dashboard'];
+  if(wsc&&fn) wsc.innerHTML=fn();
+}
+
 // ── WORKSPACE RENDER ──────────────────────────────────────────────
 function renderWS(){
   const cfg=ECFG[eid];
@@ -1510,6 +1519,30 @@ ${sopTracker()}
 </div>`;
 
 R.rcms_profit_rx=function(){
+  // Sub-tab state — stored in sessionStorage
+  const prxTab = sessionStorage.getItem('fo-prx-tab') || 'catalog';
+
+  if (prxTab === 'advanced') {
+    return `
+      <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+        <button onclick="sessionStorage.setItem('fo-prx-tab','catalog');foRender()" style="padding:.4rem .9rem;font-size:12px;border:.5px solid var(--bdr);border-radius:var(--rad-sm);background:none;color:var(--t2);cursor:pointer;font-family:var(--ff)">← Service Catalog & Billing</button>
+        <button style="padding:.4rem .9rem;font-size:12px;border:.5px solid var(--g);border-radius:var(--rad-sm);background:var(--g);color:#fff;cursor:pointer;font-family:var(--ff);font-weight:600">Profit Rx-Advanced</button>
+      </div>
+      <div id="prx-advanced-container" style="border:.5px solid var(--bdr);border-radius:var(--rad);overflow:hidden;min-height:600px;background:#fff">
+        <iframe
+          src="https://www.nursesasentrepreneurs.com/jumpstarters/profit-rx-calculator?ceo=1"
+          style="width:100%;min-height:700px;border:none;display:block"
+          title="Profit Rx-Advanced"
+          allow="same-origin"
+          id="prx-iframe"
+        ></iframe>
+      </div>
+      <p style="font-size:11px;color:var(--t3);margin-top:.5rem;text-align:center">Complete your analysis in Profit Rx-Advanced, then click "↑ Save to C.E.O. OS" to sync your Four Floors and service catalog here.</p>
+    `;
+  }
+
+  // else render catalog (existing code below)
+  {
   const b=rxBilling();
   const moOpts=_rxMonthList.map(m=>`<option value="${m.val}"${m.val===_rxMonth?' selected':''}>${m.lbl}</option>`).join('');
   const c='#1A5C5C';
@@ -1547,7 +1580,12 @@ R.rcms_profit_rx=function(){
   const totalRev=rxRevenue();
   const mLabel=_rxMonthList.find(m=>m.val===_rxMonth)?.lbl||_rxMonth;
 
-  return`<div style="margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem">
+  return`
+<div style="display:flex;gap:.5rem;margin-bottom:1rem">
+  <button style="padding:.4rem .9rem;font-size:12px;border:.5px solid var(--g);border-radius:var(--rad-sm);background:var(--g);color:#fff;cursor:pointer;font-family:var(--ff);font-weight:600">Service Catalog & Billing</button>
+  <button onclick="sessionStorage.setItem('fo-prx-tab','advanced');foRender()" style="padding:.4rem .9rem;font-size:12px;border:.5px solid var(--bdr);border-radius:var(--rad-sm);background:none;color:var(--t2);cursor:pointer;font-family:var(--ff)">Profit Rx-Advanced →</button>
+</div>
+<div style="margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem">
 <div><div style="font-size:17px;font-weight:700;color:var(--t1)">Profit Rx — Monthly</div>
 <div style="font-size:var(--ts-xs);color:var(--t3)">Service catalog · monthly billing · pricing health</div></div>
 <select onchange="rxChangeMonth(this.value)" style="border:.5px solid var(--bdr);border-radius:var(--rad-sm);padding:.35rem .65rem;font-size:var(--ts-sm);background:var(--card);color:var(--t1);font-family:var(--ff)">${moOpts}</select>
@@ -1787,7 +1825,7 @@ function rxRenderFourFloors() {
 
   const ps = s.pricing_summary || {};
   const pm = s.product_mix || [];
-  const exp = s.expenses || {};
+  const exp = s.expenses || {}};
   const savedDate = new Date(s.saved_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
   const monthKey = s.month_key || '';
 
