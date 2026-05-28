@@ -385,6 +385,41 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .fin-add-btn{font-size:10px;font-weight:600;color:var(--g);background:none;border:none;cursor:pointer;padding:.15rem 0;font-family:var(--ff)}
 .fin-del-btn{font-size:11px;color:var(--t3);background:none;border:none;cursor:pointer;padding:0 .2rem;font-family:var(--ff);flex-shrink:0}
 .fin-dl-btn{font-size:10px;font-weight:700;padding:.3rem .7rem;background:var(--t1);color:var(--bg);border:none;border-radius:var(--rad-sm);cursor:pointer;font-family:var(--ff);display:flex;align-items:center;gap:.35rem}
+
+/* ── WEEK PLANNER ── */
+.wp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.wp-modal{background:var(--card);border-radius:14px;width:100%;max-width:860px;padding:1.5rem;box-shadow:0 24px 60px rgba(0,0,0,.35);margin:auto}
+.wp-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.wp-title{font-size:16px;font-weight:700;color:var(--t1)}
+.wp-sub{font-size:12px;color:var(--t3);margin-top:2px}
+.wp-close{width:28px;height:28px;border-radius:6px;border:.5px solid var(--bdr);background:none;color:var(--t3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+.wp-days{display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-bottom:1rem}
+.wp-day{background:var(--bg);border:.5px solid var(--bdr);border-radius:10px;padding:.75rem}
+.wp-day-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:.6rem;display:flex;align-items:center;justify-content:space-between}
+.wp-day-name{color:var(--g)}
+.wp-task-item{background:var(--card);border:.5px solid var(--bdr);border-radius:7px;padding:.4rem .55rem;margin-bottom:.35rem;font-size:12px;color:var(--t2);display:flex;align-items:flex-start;gap:.4rem;cursor:default}
+.wp-task-item .wp-del{color:var(--t3);cursor:pointer;font-size:11px;margin-left:auto;flex-shrink:0;padding:0 2px}
+.wp-task-item .wp-del:hover{color:#e55}
+.wp-task-badge{display:inline-block;font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;margin-right:4px;flex-shrink:0;text-transform:uppercase;letter-spacing:.05em}
+.wp-add-row{display:flex;gap:.4rem;margin-top:.5rem}
+.wp-add-inp{flex:1;font-size:12px;padding:.3rem .5rem;border:.5px solid var(--bdr);border-radius:6px;background:var(--card);color:var(--t1);font-family:var(--ff)}
+.wp-add-btn{font-size:11px;padding:.3rem .55rem;border:.5px solid var(--g);border-radius:6px;background:none;color:var(--g);cursor:pointer;font-family:var(--ff);white-space:nowrap}
+.wp-footer{display:flex;align-items:center;justify-content:space-between;padding-top:1rem;border-top:.5px solid var(--bdr)}
+.wp-confirm-btn{padding:.6rem 1.4rem;background:var(--g);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--ff)}
+.wp-reset-btn{padding:.6rem 1rem;background:none;border:.5px solid var(--bdr);border-radius:8px;color:var(--t3);font-size:12px;cursor:pointer;font-family:var(--ff)}
+/* Today tasks strip */
+.today-strip{background:var(--card);border:.5px solid var(--bdr);border-radius:var(--rad);padding:1rem 1.25rem;margin-bottom:.75rem}
+.today-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.65rem}
+.today-title{font-size:13px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:.4rem}
+.today-plan-btn{font-size:11px;padding:.25rem .6rem;border:.5px solid var(--g);border-radius:6px;background:none;color:var(--g);cursor:pointer;font-family:var(--ff)}
+.today-empty{font-size:12px;color:var(--t3);font-style:italic}
+.today-task{display:flex;align-items:center;gap:.55rem;padding:.35rem 0;border-bottom:.5px solid var(--bdr)}
+.today-task:last-child{border-bottom:none}
+.today-cb{width:15px;height:15px;accent-color:var(--g);cursor:pointer;flex-shrink:0}
+.today-task-text{font-size:13px;color:var(--t2);flex:1}
+.today-task-text.done{text-decoration:line-through;color:var(--t3)}
+.today-badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
+@media(max-width:680px){.wp-days{grid-template-columns:1fr 1fr}.wp-overlay{padding:.5rem}}
 </style>
 </head>
 <body>
@@ -641,6 +676,7 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
               <a href="https://www.periscopeholdings.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;font-size:13px;color:#111827;text-decoration:none;font-weight:500;padding-bottom:.6rem" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background=''"><i class="ti ti-file-text" style="font-size:14px;width:16px;color:#00835B"></i>Periscope</a>
             </div>
           </div>
+          <button class="hbtn" onclick="openWeekPlanner()" title="Week Planner" id="wp-btn" style="position:relative"><i class="ti ti-calendar-week"></i></button>
           <button class="hbtn" onclick="openSd()" title="Metrics"><i class="ti ti-settings"></i></button>
         </div>
         <div class="htime" id="ht">—</div>
@@ -650,6 +686,15 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
       <span class="focus-pill" id="hb">—</span>
       <span class="focus-text" id="hf">—</span>
     </div>
+  </div>
+
+  <!-- TODAY TASKS STRIP -->
+  <div class="today-strip" id="today-strip" style="display:none">
+    <div class="today-hdr">
+      <div class="today-title"><i class="ti ti-calendar-check" style="color:var(--g)"></i><span id="today-strip-title">Today's Tasks</span></div>
+      <button class="today-plan-btn" onclick="openWeekPlanner()"><i class="ti ti-edit"></i> Plan Week</button>
+    </div>
+    <div id="today-tasks-list"><div class="today-empty">No tasks scheduled for today. Click Plan Week to set up your week.</div></div>
   </div>
 
   <!-- KPI STRIP (6 metrics) -->
@@ -2586,9 +2631,305 @@ window.saveBatch=function(){
   await loadFromSupabase();
   selE('hq');
 })();
+
+
+// ══════════════════════════════════════════════════════
+// WEEK PLANNER
+// ══════════════════════════════════════════════════════
+
+const WP_ENTITY_COLORS = {
+  'NAE':   {bg:'#1D7A60', text:'#fff'},
+  'RCMS':  {bg:'#1A5C5C', text:'#fff'},
+  'NB':    {bg:'#1A8585', text:'#fff'},
+  'W4TWP': {bg:'#7A6BB8', text:'#fff'},
+  'ALL':   {bg:'#157272', text:'#fff'},
+};
+
+const WP_DAYS_LIST = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+
+// Default recurring schedule
+const WP_DEFAULT_TASKS = {
+  Monday:    [
+    {text:'Check Brevo automation activity — bounces/issues', entity:'ALL'},
+    {text:'Check attorney email stats — opens/clicks', entity:'RCMS'},
+    {text:'Respond to LinkedIn messages', entity:'ALL'},
+    {text:'Review Founder OS — anything urgent', entity:'ALL'},
+  ],
+  Tuesday:   [
+    {text:'Check Brevo automation activity', entity:'ALL'},
+    {text:'Record podcast episode (Riverside mobile)', entity:'NAE'},
+    {text:'Release scheduled podcast episode', entity:'NAE'},
+    {text:'Respond to LinkedIn messages', entity:'ALL'},
+  ],
+  Wednesday: [
+    {text:'Check Brevo automation activity', entity:'ALL'},
+    {text:'Record podcast episode (Riverside mobile)', entity:'NAE'},
+    {text:'Respond to LinkedIn messages', entity:'ALL'},
+    {text:'Check attorney email stats', entity:'RCMS'},
+  ],
+  Thursday:  [
+    {text:'Check Brevo automation activity', entity:'ALL'},
+    {text:'Record podcast episode (Riverside mobile)', entity:'NAE'},
+    {text:'Respond to LinkedIn messages', entity:'ALL'},
+  ],
+  Friday:    [
+    {text:'Check Brevo automation activity', entity:'ALL'},
+    {text:'Respond to LinkedIn messages', entity:'ALL'},
+    {text:'Open Week Planner — set up next week', entity:'ALL'},
+    {text:'Update Founder OS — log completions', entity:'ALL'},
+  ],
+};
+
+let wpTasks = {}; // current planner state
+
+function getNextMonday() {
+  const d = new Date();
+  const day = d.getDay(); // 0=Sun,1=Mon...6=Sat
+  const diff = day === 0 ? 1 : (8 - day) % 7 || 7;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function getWeekDates(monday) {
+  return WP_DAYS_LIST.map((name, i) => {
+    const d = new Date(monday);
+    d.setDate(d.getDate() + i);
+    return {name, date: d};
+  });
+}
+
+function formatShortDate(d) {
+  return d.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+}
+
+function wpReset() {
+  const mon = getNextMonday();
+  wpTasks = {};
+  getWeekDates(mon).forEach(({name}) => {
+    wpTasks[name] = (WP_DEFAULT_TASKS[name] || []).map(t => ({...t, id: crypto.randomUUID()}));
+  });
+  renderWpDays(getWeekDates(mon));
+}
+
+function openWeekPlanner() {
+  const mon = getNextMonday();
+  const weekDates = getWeekDates(mon);
+  const label = `${formatShortDate(weekDates[0].date)} – ${formatShortDate(weekDates[4].date)}`;
+  document.getElementById('wp-week-label').textContent = 'Week of ' + label;
+
+  // Load saved or use defaults
+  const saved = localStorage.getItem('fo-week-plan');
+  if (saved) {
+    try { wpTasks = JSON.parse(saved); } catch { wpReset(); }
+    // Make sure all days exist
+    weekDates.forEach(({name}) => { if (!wpTasks[name]) wpTasks[name] = []; });
+  } else {
+    wpReset();
+  }
+
+  renderWpDays(weekDates);
+  document.getElementById('wp-overlay').style.display = 'flex';
+}
+
+function closeWeekPlanner() {
+  document.getElementById('wp-overlay').style.display = 'none';
+}
+
+function renderWpDays(weekDates) {
+  const container = document.getElementById('wp-days');
+  container.innerHTML = '';
+  weekDates.forEach(({name, date}) => {
+    const tasks = wpTasks[name] || [];
+    const dayEl = document.createElement('div');
+    dayEl.className = 'wp-day';
+    dayEl.innerHTML = `
+      <div class="wp-day-hdr">
+        <span class="wp-day-name">${name}</span>
+        <span style="font-size:10px;color:var(--t3)">${formatShortDate(date)}</span>
+      </div>
+      <div id="wp-day-${name}"></div>
+      <div class="wp-add-row">
+        <input class="wp-add-inp" id="wp-inp-${name}" placeholder="Add task..." onkeydown="if(event.key==='Enter')wpAddTask('${name}')">
+        <select class="wp-add-inp" id="wp-ent-${name}" style="max-width:70px;flex:0 0 70px">
+          <option value="ALL">ALL</option>
+          <option value="NAE">NAE</option>
+          <option value="RCMS">RCMS</option>
+          <option value="NB">NB</option>
+          <option value="W4TWP">W4TWP</option>
+        </select>
+        <button class="wp-add-btn" onclick="wpAddTask('${name}')">+</button>
+      </div>
+    `;
+    container.appendChild(dayEl);
+    renderDayTasks(name);
+  });
+}
+
+function renderDayTasks(dayName) {
+  const el = document.getElementById('wp-day-' + dayName);
+  if (!el) return;
+  const tasks = wpTasks[dayName] || [];
+  el.innerHTML = '';
+  if (tasks.length === 0) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--t3);font-style:italic;padding:.2rem 0">No tasks — add below</div>';
+    return;
+  }
+  tasks.forEach(task => {
+    const ec = WP_ENTITY_COLORS[task.entity] || WP_ENTITY_COLORS['ALL'];
+    const div = document.createElement('div');
+    div.className = 'wp-task-item';
+    div.innerHTML = `<span class="wp-task-badge" style="background:${ec.bg};color:${ec.text}">${task.entity}</span><span style="flex:1">${task.text}</span><span class="wp-del" onclick="wpDeleteTask('${dayName}','${task.id}')">✕</span>`;
+    el.appendChild(div);
+  });
+}
+
+function wpAddTask(dayName) {
+  const inp = document.getElementById('wp-inp-' + dayName);
+  const ent = document.getElementById('wp-ent-' + dayName);
+  const text = inp.value.trim();
+  if (!text) return;
+  if (!wpTasks[dayName]) wpTasks[dayName] = [];
+  wpTasks[dayName].push({id: crypto.randomUUID(), text, entity: ent.value});
+  inp.value = '';
+  renderDayTasks(dayName);
+}
+
+function wpDeleteTask(dayName, taskId) {
+  if (!wpTasks[dayName]) return;
+  wpTasks[dayName] = wpTasks[dayName].filter(t => t.id !== taskId);
+  renderDayTasks(dayName);
+}
+
+function wpConfirm() {
+  // Save to localStorage
+  localStorage.setItem('fo-week-plan', JSON.stringify(wpTasks));
+  // Save to Supabase
+  wpSaveToSupabase();
+  closeWeekPlanner();
+  renderTodayStrip();
+  foShowToast('Week plan confirmed ✓', '#157272');
+}
+
+async function wpSaveToSupabase() {
+  if (!SB) return;
+  try {
+    const rows = [];
+    Object.entries(wpTasks).forEach(([day, tasks]) => {
+      tasks.forEach(t => {
+        rows.push({day_name: day, task_text: t.text, entity: t.entity, task_id: t.id, week_key: getWeekKey()});
+      });
+    });
+    await SB.from('fo_week_tasks').delete().eq('week_key', getWeekKey());
+    if (rows.length > 0) await SB.from('fo_week_tasks').insert(rows);
+  } catch(e) { console.warn('WP Supabase save failed:', e); }
+}
+
+function getWeekKey() {
+  const mon = getNextMonday();
+  return mon.toISOString().slice(0,10);
+}
+
+function getTodayDayName() {
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  return days[new Date().getDay()];
+}
+
+function renderTodayStrip() {
+  const dayName = getTodayDayName();
+  const strip = document.getElementById('today-strip');
+  const list = document.getElementById('today-tasks-list');
+  const title = document.getElementById('today-strip-title');
+
+  // Show strip only on weekdays
+  const isWeekday = ['Monday','Tuesday','Wednesday','Thursday','Friday'].includes(dayName);
+  if (!isWeekday) { strip.style.display = 'none'; return; }
+
+  strip.style.display = 'block';
+  title.textContent = dayName + "'s Tasks";
+
+  // Load saved tasks
+  const saved = localStorage.getItem('fo-week-plan');
+  let tasks = [];
+  if (saved) {
+    try {
+      const plan = JSON.parse(saved);
+      tasks = plan[dayName] || [];
+    } catch {}
+  }
+
+  // Load completion state
+  const doneKey = 'fo-tasks-done-' + new Date().toISOString().slice(0,10);
+  let done = [];
+  try { done = JSON.parse(localStorage.getItem(doneKey) || '[]'); } catch {}
+
+  if (tasks.length === 0) {
+    list.innerHTML = '<div class="today-empty">No tasks for today. Click Plan Week to schedule your week.</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  tasks.forEach(task => {
+    const isDone = done.includes(task.id);
+    const ec = WP_ENTITY_COLORS[task.entity] || WP_ENTITY_COLORS['ALL'];
+    const div = document.createElement('div');
+    div.className = 'today-task';
+    div.innerHTML = `
+      <input type="checkbox" class="today-cb" ${isDone ? 'checked' : ''} onchange="wpToggleDone('${task.id}','${doneKey}',this)">
+      <span class="today-badge" style="background:${ec.bg};color:${ec.text}">${task.entity}</span>
+      <span class="today-task-text ${isDone ? 'done' : ''}" id="td-${task.id}">${task.text}</span>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function wpToggleDone(taskId, doneKey, cb) {
+  let done = [];
+  try { done = JSON.parse(localStorage.getItem(doneKey) || '[]'); } catch {}
+  if (cb.checked) { if (!done.includes(taskId)) done.push(taskId); }
+  else { done = done.filter(id => id !== taskId); }
+  localStorage.setItem(doneKey, JSON.stringify(done));
+  const span = document.getElementById('td-' + taskId);
+  if (span) span.className = 'today-task-text' + (cb.checked ? ' done' : '');
+}
+
+// Show Friday planning reminder badge
+function wpCheckFridayBadge() {
+  const day = new Date().getDay();
+  if (day === 5) { // Friday
+    const btn = document.getElementById('wp-btn');
+    if (btn) btn.style.borderColor = 'var(--g)';
+  }
+}
+
+// Init on load
+document.addEventListener('DOMContentLoaded', () => {
+  renderTodayStrip();
+  wpCheckFridayBadge();
+});
 </script>
+
+  <!-- WEEK PLANNER MODAL -->
+  <div class="wp-overlay" id="wp-overlay" style="display:none" onclick="if(event.target===this)closeWeekPlanner()">
+    <div class="wp-modal">
+      <div class="wp-hdr">
+        <div>
+          <div class="wp-title"><i class="ti ti-calendar-week" style="margin-right:6px;color:var(--g)"></i>Weekly Planner</div>
+          <div class="wp-sub" id="wp-week-label">Plan your week</div>
+        </div>
+        <button class="wp-close" onclick="closeWeekPlanner()"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="wp-days" id="wp-days"></div>
+      <div class="wp-footer">
+        <button class="wp-reset-btn" onclick="wpReset()"><i class="ti ti-refresh"></i> Reset to defaults</button>
+        <button class="wp-confirm-btn" onclick="wpConfirm()"><i class="ti ti-check"></i> Confirm Week</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
+
 
 
 
