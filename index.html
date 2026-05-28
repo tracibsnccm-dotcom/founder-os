@@ -6,7 +6,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Founder OS</title>
+<title>C.E.O. OS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.14.0/dist/tabler-icons.min.css">
@@ -642,7 +642,7 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
     <div class="hdr-top">
       <div class="brand">
         <div class="brand-tag">Built for founders</div>
-        <div class="brand-name">Founder OS</div>
+        <div class="brand-name">C.E.O. OS</div><div style="font-size:9px;letter-spacing:.12em;color:rgba(255,255,255,.35);text-transform:uppercase;margin-top:2px">Clarity. Execution. Operations.</div>
       </div>
       <div class="hdr-right">
         <div class="hdr-actions">
@@ -771,15 +771,15 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 let SB = null;
 try {
   SB = supabase.createClient('https://agsaccycjzrtilhdaixu.supabase.co', 'sb_publishable_Fm5nm-xrRlRM9CtUkEpVPA_RCYBhoPZ');
-  console.log('Founder OS: Supabase ready ✓');
+  console.log('C.E.O. OS: Supabase ready ✓');
 } catch(e) {
-  console.error('Founder OS: Supabase init failed', e);
+  console.error('C.E.O. OS: Supabase init failed', e);
 }
 
 // ── DB HELPERS ─────────────────────────────────────────────────
 async function dbInsert(item) {
   if (!SB) {
-    console.warn('Founder OS: Supabase not connected — open Settings to add credentials');
+    console.warn('C.E.O. OS: Supabase not connected — open Settings to add credentials');
     return null;
   }
   try {
@@ -788,7 +788,7 @@ async function dbInsert(item) {
     if (error) throw error;
     return data;
   } catch(e) {
-    console.error('Founder OS dbInsert failed:', e);
+    console.error('C.E.O. OS dbInsert failed:', e);
     foShowToast('Save failed: ' + (e.message||e), '#B91C1C');
     return null;
   }
@@ -821,7 +821,7 @@ async function dbUpsert(type, key, fields) {
       return data;
     }
   } catch(e) {
-    console.error('Founder OS dbUpsert failed:', type, key, e);
+    console.error('C.E.O. OS dbUpsert failed:', type, key, e);
     return null;
   }
 }
@@ -2653,7 +2653,7 @@ const WP_DEFAULT_TASKS = {
     {text:'Check Brevo automation activity — bounces/issues', entity:'ALL'},
     {text:'Check attorney email stats — opens/clicks', entity:'RCMS'},
     {text:'Respond to LinkedIn messages', entity:'ALL'},
-    {text:'Review Founder OS — anything urgent', entity:'ALL'},
+    {text:'Review C.E.O. OS — anything urgent', entity:'ALL'},
   ],
   Tuesday:   [
     {text:'Check Brevo automation activity', entity:'ALL'},
@@ -2676,7 +2676,7 @@ const WP_DEFAULT_TASKS = {
     {text:'Check Brevo automation activity', entity:'ALL'},
     {text:'Respond to LinkedIn messages', entity:'ALL'},
     {text:'Open Week Planner — set up next week', entity:'ALL'},
-    {text:'Update Founder OS — log completions', entity:'ALL'},
+    {text:'Update C.E.O. OS — log completions', entity:'ALL'},
   ],
 };
 
@@ -2929,6 +2929,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
