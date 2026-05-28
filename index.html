@@ -123,13 +123,13 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .wsl{font-size:var(--ts-xs);font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--t3)}
 
 /* HQ metric cards */
-.hqm{border-radius:10px;padding:.9rem 1.1rem}
-.hqm:nth-child(1){background:#157272}
-.hqm:nth-child(2){background:#1F8A8A}
-.hqm:nth-child(3){background:#6D5BA6}
-.hqm:nth-child(4){background:#3A5F6F}
-.hqm-l{font-size:var(--ts-xs);color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem;font-weight:500}
-.hqm-v{font-size:24px;font-weight:400;color:#fff;font-variant-numeric:tabular-nums}
+.hqm{border-radius:10px;padding:.7rem 1rem}
+.hqm:nth-child(1){background:var(--card);border:.5px solid rgba(21,114,114,.25)}
+.hqm:nth-child(2){background:var(--card);border:.5px solid rgba(31,138,138,.25)}
+.hqm:nth-child(3){background:var(--card);border:.5px solid rgba(109,91,166,.25)}
+.hqm:nth-child(4){background:var(--card);border:.5px solid rgba(58,95,111,.25)}
+.hqm-l{font-size:var(--ts-xs);color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem;font-weight:500}
+.hqm-v{font-size:20px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums}
 
 /* Portfolio cards */
 .port-c{display:flex;flex-direction:column;gap:.45rem;padding:.875rem 1rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm);border-left:3px solid var(--lc,#999);cursor:pointer;transition:all .18s}
@@ -641,7 +641,7 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
   <div class="hdr">
     <div class="hdr-top">
       <div class="brand">
-        <div class="brand-tag">Built for founders</div>
+        <div class="brand-tag">Built for nurse entrepreneurs</div>
         <div class="brand-name">C.E.O. OS</div><div style="font-size:9px;letter-spacing:.12em;color:rgba(255,255,255,.35);text-transform:uppercase;margin-top:2px">Clarity. Execution. Operations.</div>
       </div>
       <div class="hdr-right">
@@ -2929,6 +2929,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
