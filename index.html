@@ -319,6 +319,20 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
   .tab-row{padding:0 .75rem}
   .wsc{padding:1.1rem}
   .sd-drw{width:100%;right:-100%}
+  /* Campaign + billing tables on mobile */
+  .ctbl{font-size:10px}
+  .ctbl th,.ctbl td{padding:.35rem .3rem}
+}
+/* Scrollable table wrappers on all sizes */
+.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
+.ctbl{min-width:520px;width:100%;border-collapse:collapse}
+/* Billing + financial tables */
+.fin-tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+/* KPI row always wraps */
+@media(max-width:480px){
+  .krow{grid-template-columns:1fr}
+  .wg2{grid-template-columns:1fr}
+  .ff-grid{grid-template-columns:1fr 1fr}
 }
 
 /* ── TOAST ── */
@@ -855,7 +869,11 @@ async function dbDelete(id) {
   try {
     const { error } = await SB.from('founder_os_items').delete().eq('id', id);
     if (error) throw error;
-  } catch(e) { console.warn('dbDelete:', e); }
+    foShowToast('Deleted ✓', '#157272');
+  } catch(e) {
+    console.error('C.E.O. OS dbDelete failed:', e);
+    foShowToast('Delete failed: ' + (e.message||e), '#B91C1C');
+  }
 }
 
 async function dbLoadAll() {
@@ -1101,7 +1119,7 @@ function renderWS(){
       sopData[k]=this.value;
       const b=document.getElementById('sopb_'+k);if(b){b.className='sop-badge '+m.c;b.textContent=m.l;}
       const bar=document.getElementById('sopbar_'+k);if(bar){bar.style.width=m.bar;bar.style.background=m.barClr;}
-      dbUpsert('sop_status','sop_'+k,{status:this.value});
+      dbUpsert('sop_status','sop_'+k,{status:this.value}).catch(function(e){ console.warn('SOP save:',e); });
     };
   });
 }
@@ -1152,9 +1170,9 @@ function decisionLog(lim){
 
 function campTable(rows){
   if(!rows||!rows.length)return`<div class="empty"><i class="ti ti-send"></i><div class="empty-t">No campaigns yet</div></div>`;
-  return`<table class="ctbl"><thead><tr><th style="width:29%">Cohort tag</th><th style="width:11%">Sched</th><th style="width:14%">Contacts</th><th style="width:13%">Date</th><th style="width:33%">Status</th></tr></thead><tbody>${
+  return`<div class="tbl-scroll"><table class="ctbl"><thead><tr><th style="width:29%">Cohort tag</th><th style="width:11%">Sched</th><th style="width:14%">Contacts</th><th style="width:13%">Date</th><th style="width:33%">Status</th></tr></thead><tbody>${
     rows.map(r=>`<tr><td style="font-family:var(--fm);font-size:10px;color:var(--t3)">${r.t}</td><td><span class="${r.s==='MWF'?'cadence-mwf':'cadence-tth'}">${r.s}</span></td><td style="font-weight:500">${r.c}</td><td>${r.d}</td><td><select class="csel"><option>Active</option><option>Pending</option><option>Monitoring</option><option>Complete</option></select></td></tr>`).join('')
-  }</tbody></table>`;
+  }</tbody></table></div>`;
 }
 
 const NAE_C=[{t:'MWFNAE-05-14',s:'MWF',c:'2,500',d:'May 14'},{t:'TTHNAE-05-13',s:'TTH',c:'2,500',d:'May 13'},{t:'MWFNAE-05-21',s:'MWF',c:'2,500',d:'May 21'},{t:'TTHNAE-05-20',s:'TTH',c:'2,500',d:'May 20'},{t:'MWFNAE-05-28',s:'MWF',c:'2,000',d:'May 28'}];
@@ -2771,9 +2789,10 @@ window.addPriority = async function() {
 
 window.delPriority = async function(i) {
   var p = hqState.priorities[i];
-  // Delete from Supabase by key
-  if(SB){
-    var res = await SB.from('founder_os_items').select('id').eq('item_type','priority').eq('entity_key','hq_priority_'+i).maybeSingle();
+  // Delete from Supabase using the stored dbKey (not the array index)
+  if(SB && p){
+    var entityKey = (p.dbKey) ? p.dbKey : ('hq_priority_'+i);
+    var res = await SB.from('founder_os_items').select('id').eq('item_type','priority').eq('entity_key',entityKey).maybeSingle();
     if(res && res.data && res.data.id) await dbDelete(res.data.id);
   }
   hqState.priorities.splice(i,1);
