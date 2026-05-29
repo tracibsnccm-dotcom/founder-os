@@ -1939,7 +1939,9 @@ async function rxRefreshProfitRx() {
 
 // Auto-load on startup
 document.addEventListener('DOMContentLoaded', () => {
-  rxLoadProfitRxSession();
+  if (typeof rxLoadProfitRxSession === 'function') {
+    rxLoadProfitRxSession();
+  }
 });
 
 R.rcms_financials=function(){
