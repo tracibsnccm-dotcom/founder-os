@@ -1788,7 +1788,8 @@ function rxJumpToProfitRx() {
 // FOUR FLOORS OF PROFIT — CEO OS Integration
 // ══════════════════════════════════════════════════════════════════
 
-let _profitRxSession = null; // cached latest session from Supabase
+let _profitRxSession = null;
+let _prxProducts = []; // cached latest session from Supabase
 
 
 async function rxLoadProfitRxSession() {
@@ -1844,6 +1845,117 @@ function rxSyncServicesFromProfitRx(session) {
 function fmtFloorPrice(val) {
   if (!val && val !== 0) return '—';
   return '$' + Number(val).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+
+// ── Product Catalog — load from Supabase ─────────────────────────────────────
+async function loadPrxProducts() {
+  if (!SB) return;
+  try {
+    const { data } = await SB.from('founder_os_items').select('*')
+      .eq('item_type','prx_product').order('created_at',{ascending:true});
+    _prxProducts = (data||[]).map(row=>{
+      try { const b=JSON.parse(row.body||'{}'); return {...b,name:row.title||b.name||'',sb_id:row.id}; }
+      catch { return {name:row.title||'',sb_id:row.id}; }
+    }).filter(p=>p.name);
+  } catch(e) { console.warn('loadPrxProducts:',e); }
+}
+
+async function loadAndRefreshProducts() {
+  await loadPrxProducts();
+  renderWS();
+  foShowToast(_prxProducts.length+' products loaded ✓','#157272');
+}
+
+function renderProductCatalog() {
+  const filter = sessionStorage.getItem('fo-prx-product-filter')||'ALL';
+  const ECOLORS = {NAE:'#1D7A60',RCMS:'#6D5BA6',NB:'#1A8585',W4TWP:'#7A6BB8'};
+  const ENTS = ['NAE','RCMS','NB','W4TWP'];
+  const breakEven = (_profitRxSession&&_profitRxSession.pricing_summary)
+    ? (_profitRxSession.pricing_summary.break_even_price||0) : 0;
+
+  if (!_prxProducts.length) {
+    return '<div style="text-align:center;padding:2.5rem 1rem;border:.5px solid var(--bdr);border-radius:var(--rad);background:var(--card)">'
+      +'<div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:.5rem">No Products Loaded</div>'
+      +'<div style="font-size:12px;color:var(--t3);max-width:420px;margin:0 auto 1.25rem;line-height:1.7">'
+      +'Open Profit Rx — C.E.O. Edition to add your products. They will appear here automatically.</div>'
+      +'<button onclick="loadAndRefreshProducts()" style="padding:.5rem 1.25rem;background:var(--g);color:#fff;border:none;border-radius:var(--rad-sm);font-size:12px;font-weight:700;cursor:pointer">'
+      +'↻ Refresh Now</button></div>';
+  }
+
+  const products = _prxProducts;
+  const filtered = filter==='ALL' ? products : products.filter(p=>(p.entity||'NAE')===filter);
+  const totalRev = products.reduce((s,p)=>s+(parseFloat(p.price)||0)*(parseFloat(p.units)||0),0);
+  const filtRev  = filtered.reduce((s,p)=>s+(parseFloat(p.price)||0)*(parseFloat(p.units)||0),0);
+  const fmtM = v => v>0 ? '$'+Math.round(v).toLocaleString() : '—';
+  const fmtP = v => parseFloat(v)>0 ? '$'+parseFloat(v).toLocaleString('en-US',{minimumFractionDigits:2}) : '—';
+
+  function getStatus(p) {
+    const pr=parseFloat(p.price)||0, un=parseFloat(p.units)||0;
+    if (pr>0&&un>0) return {dot:'#16a34a',label:'Active'};
+    if (pr>0)       return {dot:'#d97706',label:'Review'};
+    return {dot:'#9ca3af',label:'Pending'};
+  }
+
+  const entityCards = ENTS.map(e=>{
+    const ep=products.filter(p=>(p.entity||'NAE')===e);
+    const eRev=ep.reduce((s,p)=>s+(parseFloat(p.price)||0)*(parseFloat(p.units)||0),0);
+    const active=ep.filter(p=>parseFloat(p.price)>0&&parseFloat(p.units)>0).length;
+    const c=ECOLORS[e];
+    return `<div style="background:var(--card);border:.5px solid ${c}40;border-top:3px solid ${c};border-radius:8px;padding:.65rem .85rem;flex:1;min-width:110px">
+      <div style="font-size:9px;font-weight:800;color:${c};letter-spacing:.08em;text-transform:uppercase">${e}</div>
+      <div style="font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--t1);margin:.15rem 0">${fmtM(eRev)}</div>
+      <div style="font-size:10px;color:var(--t3)">${ep.length} products · ${active} active</div></div>`;
+  }).join('');
+
+  const filterBtns = ['ALL',...ENTS].map(e=>{
+    const active=e===filter, c=e==='ALL'?'var(--g)':(ECOLORS[e]||'var(--g)');
+    return `<button onclick="sessionStorage.setItem('fo-prx-product-filter','${e}');foRender()"
+      style="padding:.3rem .75rem;font-size:10px;font-weight:700;border-radius:20px;cursor:pointer;
+      border:1.5px solid ${active?c:'var(--bdr)'};background:${active?c:'transparent'};color:${active?'#fff':'var(--t2)'}">${e}</button>`;
+  }).join('');
+
+  const headers = ['Product / Service','Entity','Category','Type','Price','Mo. Units','Est. Mo. Revenue','Status'];
+  const rows = filtered.map((p,i)=>{
+    const rev=(parseFloat(p.price)||0)*(parseFloat(p.units)||0);
+    const st=getStatus(p); const ec=ECOLORS[p.entity||'NAE']||'#157272';
+    return `<tr style="border-top:.5px solid var(--bdr);${i%2===1?'background:var(--bg)':''}">
+      <td style="padding:.45rem .6rem;font-size:12px;font-weight:600;color:var(--t1)">${p.name||'—'}</td>
+      <td style="padding:.45rem .4rem"><span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;background:${ec}18;color:${ec}">${p.entity||'NAE'}</span></td>
+      <td style="padding:.45rem .4rem;font-size:11px;color:var(--t2)">${p.category||'—'}</td>
+      <td style="padding:.45rem .4rem;font-size:11px;color:var(--t3)">${p.offer_type||'—'}</td>
+      <td style="padding:.45rem .4rem;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--g)">${fmtP(p.price)}</td>
+      <td style="padding:.45rem .4rem;font-size:11px;text-align:center;color:var(--t2)">${parseFloat(p.units)||0}</td>
+      <td style="padding:.45rem .4rem;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;color:${rev>0?'#1A5C5C':'var(--t3)'}">${fmtM(rev)}</td>
+      <td style="padding:.45rem .4rem"><span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:${st.dot}">
+        <span style="width:7px;height:7px;border-radius:50%;background:${st.dot};flex-shrink:0"></span>${st.label}</span></td></tr>`;
+  }).join('');
+
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap">${filterBtns}</div>
+      <button onclick="loadAndRefreshProducts()" style="font-size:11px;padding:.3rem .75rem;border:.5px solid var(--g);border-radius:var(--rad-sm);background:none;color:var(--g);cursor:pointer;font-weight:600">↻ Refresh</button>
+    </div>
+    <div style="display:flex;gap:.6rem;margin-bottom:1.25rem;flex-wrap:wrap">${entityCards}</div>
+    <div style="background:var(--card);border:.5px solid var(--bdr);border-radius:var(--rad);margin-bottom:1rem;padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3)">${filter==='ALL'?'All Entities':'Entity: '+filter} — Est. Monthly Revenue</div>
+        <div style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--g)">$${Math.round(filtRev).toLocaleString()}</div>
+      </div>
+      ${breakEven>0?`<div style="text-align:right">
+        <div style="font-size:10px;color:var(--t3)">RCMS Break-Even</div>
+        <div style="font-size:16px;font-weight:700;color:#ef4444;font-variant-numeric:tabular-nums">$${Math.round(breakEven).toLocaleString()}</div>
+        <div style="font-size:10px;font-weight:700;margin-top:2px;color:${totalRev>=breakEven?'#16a34a':'#d97706'}">
+          ${totalRev>=breakEven?'✓ Above break-even':'⚠ Below break-even'}</div>
+      </div>`:'<div style="font-size:11px;color:var(--t3)">Run Profit Rx to see break-even</div>'}
+    </div>
+    <div style="overflow-x:auto;border:.5px solid var(--bdr);border-radius:var(--rad)">
+      <table style="width:100%;border-collapse:collapse;min-width:640px">
+        <thead><tr style="background:var(--bg)">${headers.map(h=>`<th style="padding:.45rem .4rem;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);text-align:left;white-space:nowrap">${h}</th>`).join('')}</tr></thead>
+        <tbody>${filtered.length?rows:`<tr><td colspan="8" style="padding:2rem;text-align:center;color:var(--t3);font-size:12px;font-style:italic">No products match this filter</td></tr>`}</tbody>
+      </table>
+    </div>
+    ${filtered.length?`<div style="font-size:11px;color:var(--t3);margin-top:.4rem;text-align:right">${filtered.length} of ${products.length} products · Edit in Profit Rx C.E.O. Edition</div>`:''}`;
 }
 
 function rxRenderFourFloors() {
@@ -1940,6 +2052,7 @@ function rxRenderFourFloors() {
 }
 
 async function rxRefreshProfitRx() {
+  if (typeof loadPrxProducts === 'function') await loadPrxProducts();
   const btn = event?.target;
   if (btn) btn.textContent = 'Loading...';
   const session = await rxLoadProfitRxSession();
@@ -1959,9 +2072,8 @@ async function rxRefreshProfitRx() {
 
 // Auto-load on startup
 document.addEventListener('DOMContentLoaded', () => {
-  if (typeof rxLoadProfitRxSession === 'function') {
-    rxLoadProfitRxSession();
-  }
+  if (typeof rxLoadProfitRxSession === 'function') rxLoadProfitRxSession();
+  if (typeof loadPrxProducts === 'function') loadPrxProducts();
 });
 
 R.rcms_financials=function(){
