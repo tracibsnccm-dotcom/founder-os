@@ -1537,106 +1537,97 @@ ${sopTracker()}
 </div>`;
 
 R.rcms_profit_rx=function(){
-  const prxTab = sessionStorage.getItem('fo-prx-tab') || 'products';
-  const ENTITY_COLORS_MAP = { NAE:'#1D7A60', RCMS:'#6D5BA6', NB:'#1A8585', W4TWP:'#7A6BB8' };
+  var prxTab = sessionStorage.getItem('fo-prx-tab') || 'products';
+  var EC = {NAE:'#1D7A60',RCMS:'#6D5BA6',NB:'#1A8585',W4TWP:'#7A6BB8'};
 
-  // Tab bar
-  const tabs = [
-    {id:'products', label:'<i class="ti ti-package"></i> Product Catalog'},
-    {id:'catalog',  label:'<i class="ti ti-receipt"></i> Service Catalog & Billing'},
-    {id:'advanced', label:'<i class="ti ti-calculator"></i> Profit Rx-Advanced'},
-  ];
-  const tabBar = '<div style="display:flex;gap:.4rem;margin-bottom:1.25rem;border-bottom:.5px solid var(--bdr);padding-bottom:.75rem;flex-wrap:wrap">'
-    + tabs.map(t=>'<button onclick="sessionStorage.setItem(\'fo-prx-tab\',\''+t.id+'\');foRender()"'
+  function tabBtn(id, icon, label) {
+    var active = prxTab === id;
+    return '<button onclick="sessionStorage.setItem('fo-prx-tab',''+id+'');foRender()"'
       +' style="padding:.4rem .9rem;font-size:12px;border-radius:var(--rad-sm);cursor:pointer;font-weight:600;'
-      +'border:'+(t.id===prxTab?'.5px solid var(--g)':'.5px solid var(--bdr)')+';'
-      +'background:'+(t.id===prxTab?'var(--g)':'none')+';'
-      +'color:'+(t.id===prxTab?'#fff':'var(--t2)')+'">'+t.label+'</button>').join('')
+      +'border:.5px solid '+(active?'var(--g)':'var(--bdr)')+';'
+      +'background:'+(active?'var(--g)':'none')+';'
+      +'color:'+(active?'#fff':'var(--t2)')+';">'
+      +'<i class="ti '+icon+'"></i> '+label+'</button>';
+  }
+  var tabBar = '<div style="display:flex;gap:.4rem;margin-bottom:1.25rem;border-bottom:.5px solid var(--bdr);padding-bottom:.75rem;flex-wrap:wrap">'
+    + tabBtn('products','ti-package','Product Catalog')
+    + tabBtn('catalog','ti-receipt','Service Catalog & Billing')
+    + tabBtn('advanced','ti-calculator','Profit Rx-Advanced')
     + '</div>';
 
-  // ── TAB: Product Catalog ────────────────────────────────────────────────
   if (prxTab === 'products') {
     return tabBar + renderProductCatalog();
   }
 
-  // ── TAB: Profit Rx-Advanced ─────────────────────────────────────────────
   if (prxTab === 'advanced') {
-    const entityBtns = ['NAE','RCMS','NB','W4TWP'].map(e=>
-      '<button onclick="window.open(\'https://www.nursesasentrepreneurs.com/jumpstarters/profit-rx-ceo?entity='+e.toLowerCase()+'\',\'_blank\')"'
-      +' style="padding:.6rem 1.5rem;background:'+ENTITY_COLORS_MAP[e]+';color:#fff;border:none;border-radius:var(--rad-sm);font-size:12px;font-weight:700;cursor:pointer">'
-      +e+' ↗</button>').join('');
+    var eBtns = ['NAE','RCMS','NB','W4TWP'].map(function(e){
+      return '<button onclick="window.open('https://www.nursesasentrepreneurs.com/jumpstarters/profit-rx-ceo?entity='+e.toLowerCase()+'','_blank')"'
+        +' style="padding:.6rem 1.5rem;background:'+EC[e]+';color:#fff;border:none;border-radius:var(--rad-sm);font-size:12px;font-weight:700;cursor:pointer">'+e+' ↗</button>';
+    }).join('');
     return tabBar
-      + '<div style="border:.5px solid var(--bdr);border-radius:var(--rad);padding:2rem;text-align:center;background:var(--card)">'
+      + '<div style="border:.5px solid var(--bdr);border-radius:var(--rad);padding:2rem;text-align:center;background:var(--card);margin-bottom:1rem">'
       + '<div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:.4rem">Profit Rx — C.E.O. Edition</div>'
-      + '<div style="font-size:12px;color:var(--t3);margin-bottom:1.5rem;max-width:440px;margin-left:auto;margin-right:auto;line-height:1.7">'
-      + 'Open for a specific entity. Products save automatically and appear in the Product Catalog tab.</div>'
-      + '<div style="display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center">'+entityBtns+'</div>'
+      + '<div style="font-size:12px;color:var(--t3);margin-bottom:1.5rem;max-width:440px;margin-left:auto;margin-right:auto;line-height:1.7">Open for a specific entity. Products save automatically and appear in the Product Catalog tab.</div>'
+      + '<div style="display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center">'+eBtns+'</div>'
       + '<div style="margin-top:1.5rem;padding-top:1.25rem;border-top:.5px solid var(--bdr)">'
-      + '<button onclick="rxRefreshProfitRx()" style="padding:.4rem 1rem;font-size:12px;border:.5px solid var(--g);border-radius:var(--rad-sm);background:none;color:var(--g);cursor:pointer;font-weight:600">'
-      + '↻ Refresh — sync Four Floors & break-even from last session</button></div></div>'
+      + '<button onclick="rxRefreshProfitRx()" style="padding:.4rem 1rem;font-size:12px;border:.5px solid var(--g);border-radius:var(--rad-sm);background:none;color:var(--g);cursor:pointer;font-weight:600">↻ Refresh — sync Four Floors from last session</button>'
+      + '</div></div>'
       + rxRenderFourFloors();
   }
 
-  // ── TAB: Service Catalog & Billing ──────────────────────────────────────
-    // else render catalog (existing code below)
-  {
-  const b=rxBilling();
-  const moOpts=_rxMonthList.map(m=>`<option value="${m.val}"${m.val===_rxMonth?' selected':''}>${m.lbl}</option>`).join('');
-  const c='#1A5C5C';
+  // Service Catalog & Billing tab
+  var b=rxBilling();
+  var moOpts=_rxMonthList.map(function(m){return'<option value="'+m.val+'"'+(m.val===_rxMonth?' selected':'')+'>'+m.lbl+'</option>';}).join('');
+  var c='#1A5C5C';
+  var svcRows=rcmsServices.length?rcmsServices.map(function(s,i){
+    var margin=s.overhead_pct?(100-parseFloat(s.overhead_pct)).toFixed(0)+'%':'—';
+    var health=s.overhead_pct?(parseFloat(s.overhead_pct)>70?'🔴 Review':(parseFloat(s.overhead_pct)>50?'🟡 Watch':'🟢 Healthy')):'—';
+    return'<tr>'
+      +'<td style="font-weight:600;color:var(--t1)">'+s.name+'</td>'
+      +'<td>'+bdg(s.type||'Service')+'</td>'
+      +'<td style="font-variant-numeric:tabular-nums">'+fmtUSD(s.rate)+(s.unit?' /'+s.unit:'')+'</td>'
+      +'<td>'+(s.overhead_pct||0)+'%</td>'
+      +'<td style="font-variant-numeric:tabular-nums">'+(s.recommended_min?fmtUSD(s.recommended_min):'—')+'</td>'
+      +'<td>'+health+'</td>'
+      +'<td><button onclick="openRcmsSvcModal('+i+')" style="font-size:10px;color:var(--t2);background:none;border:none;cursor:pointer;font-weight:600">Edit</button>'
+      +'<button onclick="deleteRcmsSvc('+i+')" style="font-size:11px;color:#ef4444;background:none;border:none;cursor:pointer;margin-left:.25rem">✕</button></td>'
+      +'</tr>';
+  }).join(''):'<tr><td colspan="7" style="text-align:center;padding:1.5rem;color:var(--t3)">No services yet — click + Add Service</td></tr>';
 
-  const svcRows=rcmsServices.length?rcmsServices.map((s,i)=>{
-    const margin=s.overhead_pct?(100-parseFloat(s.overhead_pct)).toFixed(0)+'%':'—';
-    const health=s.overhead_pct?(parseFloat(s.overhead_pct)>70?'🔴 Review':(parseFloat(s.overhead_pct)>50?'🟡 Watch':'🟢 Healthy')):'—';
-    return`<tr>
-      <td style="font-weight:600;color:var(--t1)">${s.name}</td>
-      <td><span style="font-size:9px;font-weight:700;background:var(--card);padding:2px 7px;border-radius:20px;color:var(--t2)">${s.type}</span></td>
-      <td style="font-variant-numeric:tabular-nums">${fmtUSD(s.rate)}${s.unit?' /'+s.unit:''}</td>
-      <td>${s.overhead_pct||0}%</td>
-      <td style="font-variant-numeric:tabular-nums">${s.recommended_min?fmtUSD(s.recommended_min):'—'}</td>
-      <td>${health}</td>
-      <td><button onclick="openRcmsSvcModal(${i})" style="font-size:10px;color:var(--t2);background:none;border:.5px solid var(--bdr);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:var(--ff)">Edit</button>
-      <button onclick="deleteRcmsSvc(${i})" style="font-size:11px;color:#ef4444;background:none;border:none;cursor:pointer;margin-left:4px;font-family:var(--ff)">✕</button></td>
-    </tr>`;}).join('')
-    :`<tr><td colspan="7" style="text-align:center;padding:1.5rem;color:var(--t3)">No services yet — click + Add Service to begin</td></tr>`;
+  var billingRows=rcmsServices.length?rcmsServices.map(function(s){
+    var key=s.id||s.name; var row=b[key]||{performed:false,quantity:1};
+    var rev=row.performed?(parseFloat(row.quantity)||1)*(parseFloat(s.rate)||0):0;
+    return'<div style="display:flex;align-items:center;gap:.75rem;padding:.5rem .75rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm)">'
+      +'<input type="checkbox"'+(row.performed?' checked':'')+' onchange="rxToggleSvc(''+key+'',this.checked)" style="width:15px;height:15px;accent-color:var(--g);cursor:pointer;flex-shrink:0">'
+      +'<div style="flex:1"><div style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">'+s.name+'</div>'
+      +'<div style="font-size:var(--ts-xs);color:var(--t3)">'+s.type+' · '+fmtUSD(s.rate)+(s.unit?' /'+s.unit:'')+'</div></div>'
+      +(row.performed?'<div style="display:flex;align-items:center;gap:.35rem">'
+        +'<input type="number" value="'+(row.quantity||1)+'" min="0.25" step="'+(s.type==='Hourly'?'0.25':'1')+'" onchange="rxSetQty(''+key+'',this.value)" style="width:60px;border:.5px solid var(--bdr);border-radius:4px;padding:.25rem .4rem;font-size:12px">'
+        +'<span style="font-size:var(--ts-xs);color:var(--t3)">'+(s.unit||'units')+'</span>'
+        +'<span style="font-size:var(--ts-sm);font-weight:700;color:#22c55e;min-width:80px;text-align:right;font-variant-numeric:tabular-nums">'+fmtUSD(rev)+'</span>'
+        +'</div>':'<span style="font-size:var(--ts-xs);color:var(--t3)">Not performed</span>')
+      +'</div>';
+  }).join(''):'<div style="text-align:center;padding:1.25rem;color:var(--t3);font-size:var(--ts-sm)">Add services to the catalog to begin monthly billing tracking</div>';
 
-  const billingRows=rcmsServices.length?rcmsServices.map(s=>{
-    const key=s.id||s.name;const row=b[key]||{performed:false,quantity:1};
-    const rev=row.performed?(parseFloat(row.quantity)||1)*(parseFloat(s.rate)||0):0;
-    return`<div style="display:flex;align-items:center;gap:.75rem;padding:.5rem .75rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm)${row.performed?';border-left:3px solid #22c55e':''}">
-      <input type="checkbox"${row.performed?' checked':''} onchange="rxToggleSvc('${key}',this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:#22c55e;flex-shrink:0">
-      <div style="flex:1"><div style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">${s.name}</div>
-        <div style="font-size:var(--ts-xs);color:var(--t3)">${s.type} · ${fmtUSD(s.rate)}${s.unit?' /'+s.unit:''}</div></div>
-      ${row.performed?`<div style="display:flex;align-items:center;gap:.35rem">
-        <input type="number" value="${row.quantity||1}" min="0.25" step="${s.type==='Hourly'?'0.25':'1'}" onchange="rxSetQty('${key}',this.value)" style="width:60px;border:.5px solid var(--bdr);border-radius:5px;padding:.2rem .4rem;font-size:var(--ts-xs);background:var(--card);color:var(--t1);font-family:var(--ff)">
-        <span style="font-size:var(--ts-xs);color:var(--t3)">${s.unit||'units'}</span>
-        <span style="font-size:var(--ts-sm);font-weight:700;color:#22c55e;min-width:80px;text-align:right;font-variant-numeric:tabular-nums">${fmtUSD(rev)}</span>
-      </div>`:`<span style="font-size:var(--ts-xs);color:var(--t3)">Not performed</span>`}
-    </div>`;}).join('')
-    :`<div style="text-align:center;padding:1.25rem;color:var(--t3);font-size:var(--ts-sm)">Add services to the catalog to begin monthly billing tracking</div>`;
+  var totalRev=rxRevenue();
+  var mLabel=_rxMonthList.find(function(m){return m.val===_rxMonth;})?.lbl||_rxMonth;
 
-  const totalRev=rxRevenue();
-  const mLabel=_rxMonthList.find(m=>m.val===_rxMonth)?.lbl||_rxMonth;
-
-  return`
-<div style="display:flex;gap:.5rem;margin-bottom:1rem">
-  <button style="padding:.4rem .9rem;font-size:12px;border:.5px solid var(--g);border-radius:var(--rad-sm);background:var(--g);color:#fff;cursor:pointer;font-family:var(--ff);font-weight:600">Service Catalog & Billing</button>
-  <button onclick="sessionStorage.setItem('fo-prx-tab','advanced');foRender()" style="padding:.4rem .9rem;font-size:12px;border:.5px solid var(--bdr);border-radius:var(--rad-sm);background:none;color:var(--t2);cursor:pointer;font-family:var(--ff)">Profit Rx-Advanced →</button>
-</div>
-<div style="margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem">
-<div><div style="font-size:17px;font-weight:700;color:var(--t1)">Profit Rx — Monthly</div>
-<div style="font-size:var(--ts-xs);color:var(--t3)">Service catalog · monthly billing · pricing health</div></div>
-<select onchange="rxChangeMonth(this.value)" style="border:.5px solid var(--bdr);border-radius:var(--rad-sm);padding:.35rem .65rem;font-size:var(--ts-sm);background:var(--card);color:var(--t1);font-family:var(--ff)">${moOpts}</select>
-</div>
-<div class="wsh"><span class="wsbar" style="background:${c}"></span><span class="wsl">Service Catalog</span>
-<button onclick="openRcmsSvcModal(null)" style="margin-left:auto;font-size:10px;font-weight:700;padding:.28rem .65rem;background:${c};color:#fff;border:none;border-radius:var(--rad-sm);cursor:pointer;font-family:var(--ff)">+ Add Service</button></div>
-<div style="overflow-x:auto;margin-bottom:1.5rem"><table class="rx-tbl">
-<thead><tr><th>Service</th><th>Type</th><th>Rate</th><th>Overhead</th><th>Rec. Min</th><th>Margin Health</th><th></th></tr></thead>
-<tbody id="rx-svc-tbody">${svcRows}</tbody></table></div>
-<div class="wsh"><span class="wsbar" style="background:${c}"></span><span class="wsl">Monthly Billing — ${mLabel}</span></div>
-<div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem">${billingRows}</div>
-${rcmsServices.length&&totalRev>0?`<div style="display:flex;justify-content:space-between;align-items:center;padding:.65rem 1rem;background:var(--card);border:.5px solid var(--bdr);border-radius:var(--rad-sm);border-left:3px solid ${c}">
-<span style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">Total Revenue — ${mLabel}</span>
-<span style="font-size:17px;font-weight:700;color:${c};font-variant-numeric:tabular-nums">${fmtUSD(totalRev)}</span></div>`:''}`;
+  return tabBar
+    + '<div style="margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">'
+    + '<div><div style="font-size:17px;font-weight:700;color:var(--t1)">Profit Rx — Monthly</div>'
+    + '<div style="font-size:var(--ts-xs);color:var(--t3)">Service catalog · monthly billing · pricing health</div></div>'
+    + '<select onchange="rxChangeMonth(this.value)" style="border:.5px solid var(--bdr);border-radius:var(--rad-sm);padding:.3rem .6rem;font-size:12px;background:var(--card);color:var(--t1)">'+moOpts+'</select>'
+    + '</div>'
+    + '<div class="wsh"><span class="wsbar" style="background:'+c+'"></span><span class="wsl">Service Catalog</span>'
+    + '<button onclick="openRcmsSvcModal(null)" style="margin-left:auto;font-size:10px;font-weight:700;padding:.28rem .7rem;border:.5px solid '+c+';border-radius:var(--rad-sm);background:none;color:'+c+';cursor:pointer">+ Add Service</button></div>'
+    + '<div style="overflow-x:auto;margin-bottom:1.5rem"><table class="rx-tbl">'
+    + '<thead><tr><th>Service</th><th>Type</th><th>Rate</th><th>Overhead</th><th>Rec. Min</th><th>Margin Health</th><th></th></tr></thead>'
+    + '<tbody>'+svcRows+'</tbody></table></div>'
+    + '<div class="wsh"><span class="wsbar" style="background:'+c+'"></span><span class="wsl">Monthly Billing — '+mLabel+'</span></div>'
+    + '<div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem">'+billingRows+'</div>'
+    + (rcmsServices.length&&totalRev>0?'<div style="display:flex;justify-content:space-between;align-items:center;padding:.75rem 1rem;background:var(--card);border:.5px solid var(--bdr);border-radius:var(--rad-sm)">'
+      +'<span style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">Total Revenue — '+mLabel+'</span>'
+      +'<span style="font-size:17px;font-weight:700;color:'+c+';font-variant-numeric:tabular-nums">'+fmtUSD(totalRev)+'</span></div>':'');
 };
 
 
