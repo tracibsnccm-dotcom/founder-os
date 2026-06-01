@@ -1542,7 +1542,7 @@ R.rcms_profit_rx=function(){
 
   function tabBtn(id, icon, label) {
     var active = prxTab === id;
-    return '<button onclick="sessionStorage.setItem('fo-prx-tab',''+id+'');foRender()"'
+    return '<button onclick="sessionStorage.setItem(\'fo-prx-tab\',\''+id+'\');foRender()"'
       +' style="padding:.4rem .9rem;font-size:12px;border-radius:var(--rad-sm);cursor:pointer;font-weight:600;'
       +'border:.5px solid '+(active?'var(--g)':'var(--bdr)')+';'
       +'background:'+(active?'var(--g)':'none')+';'
@@ -1561,7 +1561,7 @@ R.rcms_profit_rx=function(){
 
   if (prxTab === 'advanced') {
     var eBtns = ['NAE','RCMS','NB','W4TWP'].map(function(e){
-      return '<button onclick="window.open('https://www.nursesasentrepreneurs.com/jumpstarters/profit-rx-ceo?entity='+e.toLowerCase()+'','_blank')"'
+      return '<button onclick="window.open(\'https://www.nursesasentrepreneurs.com/jumpstarters/profit-rx-ceo?entity='+e.toLowerCase()+'\',\'_blank\')"'
         +' style="padding:.6rem 1.5rem;background:'+EC[e]+';color:#fff;border:none;border-radius:var(--rad-sm);font-size:12px;font-weight:700;cursor:pointer">'+e+' ↗</button>';
     }).join('');
     return tabBar
@@ -1598,11 +1598,11 @@ R.rcms_profit_rx=function(){
     var key=s.id||s.name; var row=b[key]||{performed:false,quantity:1};
     var rev=row.performed?(parseFloat(row.quantity)||1)*(parseFloat(s.rate)||0):0;
     return'<div style="display:flex;align-items:center;gap:.75rem;padding:.5rem .75rem;background:var(--bg);border:.5px solid var(--bdr);border-radius:var(--rad-sm)">'
-      +'<input type="checkbox"'+(row.performed?' checked':'')+' onchange="rxToggleSvc(''+key+'',this.checked)" style="width:15px;height:15px;accent-color:var(--g);cursor:pointer;flex-shrink:0">'
+      +'<input type="checkbox"'+(row.performed?' checked':'')+' onchange="rxToggleSvc(\''+key+'\',this.checked)" style="width:15px;height:15px;accent-color:var(--g);cursor:pointer;flex-shrink:0">'
       +'<div style="flex:1"><div style="font-size:var(--ts-sm);font-weight:600;color:var(--t1)">'+s.name+'</div>'
       +'<div style="font-size:var(--ts-xs);color:var(--t3)">'+s.type+' · '+fmtUSD(s.rate)+(s.unit?' /'+s.unit:'')+'</div></div>'
       +(row.performed?'<div style="display:flex;align-items:center;gap:.35rem">'
-        +'<input type="number" value="'+(row.quantity||1)+'" min="0.25" step="'+(s.type==='Hourly'?'0.25':'1')+'" onchange="rxSetQty(''+key+'',this.value)" style="width:60px;border:.5px solid var(--bdr);border-radius:4px;padding:.25rem .4rem;font-size:12px">'
+        +'<input type="number" value="'+(row.quantity||1)+'" min="0.25" step="'+(s.type==='Hourly'?'0.25':'1')+'" onchange="rxSetQty(\''+key+'\',this.value)" style="width:60px;border:.5px solid var(--bdr);border-radius:4px;padding:.25rem .4rem;font-size:12px">'
         +'<span style="font-size:var(--ts-xs);color:var(--t3)">'+(s.unit||'units')+'</span>'
         +'<span style="font-size:var(--ts-sm);font-weight:700;color:#22c55e;min-width:80px;text-align:right;font-variant-numeric:tabular-nums">'+fmtUSD(rev)+'</span>'
         +'</div>':'<span style="font-size:var(--ts-xs);color:var(--t3)">Not performed</span>')
@@ -1966,7 +1966,7 @@ function rxRenderFourFloors() {
 
   const ps = s.pricing_summary || {};
   const pm = s.product_mix || [];
-  const exp = s.expenses || {}};
+  const exp = s.expenses || {};
   const savedDate = new Date(s.saved_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
   const monthKey = s.month_key || '';
 
