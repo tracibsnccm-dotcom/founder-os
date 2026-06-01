@@ -433,6 +433,15 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .today-task-text{font-size:13px;color:var(--t2);flex:1}
 .today-task-text.done{text-decoration:line-through;color:var(--t3)}
 .today-badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
+.today-task{border-bottom:none}
+.today-task-wrap{border-bottom:.5px solid var(--bdr)}
+.today-task-wrap:last-child{border-bottom:none}
+.today-task-text{cursor:pointer}
+.today-note-ico{font-size:11px;color:var(--g);margin-left:6px;vertical-align:-1px}
+.today-note{padding:0 0 .45rem 2.4rem}
+.today-note-preview{font-size:12px;color:var(--t3);font-style:italic;cursor:pointer;white-space:pre-wrap;line-height:1.55}
+.today-note-edit textarea{width:100%;min-height:46px;resize:vertical;font-family:var(--ff);font-size:12px;color:var(--t1);background:var(--card);border:.5px solid var(--bdr);border-radius:6px;padding:.4rem .55rem;line-height:1.5}
+.today-note-hint{font-size:10px;color:var(--t3);margin-top:3px}
 @media(max-width:680px){.wp-days{grid-template-columns:1fr 1fr}.wp-overlay{padding:.5rem}}
 
 /* ── FOUR FLOORS OF PROFIT ── */
@@ -3438,14 +3447,29 @@ function renderTodayStrip() {
   tasks.forEach(task => {
     const isDone = done.includes(task.id);
     const ec = WP_ENTITY_COLORS[task.entity] || WP_ENTITY_COLORS['ALL'];
-    const div = document.createElement('div');
-    div.className = 'today-task';
-    div.innerHTML = `
-      <input type="checkbox" class="today-cb" ${isDone ? 'checked' : ''} onchange="wpToggleDone('${task.id}','${doneKey}',this)">
-      <span class="today-badge" style="background:${ec.bg};color:${ec.text}">${task.entity}</span>
-      <span class="today-task-text ${isDone ? 'done' : ''}" id="td-${task.id}">${task.text}</span>
+    const note = task.note || '';
+    const hasNote = note.trim().length > 0;
+    const wrap = document.createElement('div');
+    wrap.className = 'today-task-wrap';
+    wrap.innerHTML = `
+      <div class="today-task">
+        <input type="checkbox" class="today-cb" ${isDone ? 'checked' : ''} onchange="wpToggleDone('${task.id}','${doneKey}',this)">
+        <span class="today-badge" style="background:${ec.bg};color:${ec.text}">${task.entity}</span>
+        <span class="today-task-text ${isDone ? 'done' : ''}" id="td-${task.id}" onclick="wpToggleNote('${task.id}')" title="Click to add a note to yourself">${foEsc(task.text)}<i class="ti ti-note today-note-ico" id="td-ico-${task.id}" style="${hasNote ? '' : 'display:none'}"></i></span>
+      </div>
+      <div class="today-note" id="td-note-${task.id}">
+        <div class="today-note-preview" id="td-prev-${task.id}" onclick="wpToggleNote('${task.id}')" style="${hasNote ? '' : 'display:none'}"></div>
+        <div class="today-note-edit" id="td-edit-${task.id}" style="display:none">
+          <textarea id="td-ta-${task.id}" placeholder="Note to yourself — what you want to do, or something that came up…" oninput="wpSaveNote('${task.id}', this.value)" onblur="wpCollapseNote('${task.id}')"></textarea>
+          <div class="today-note-hint">Saves automatically</div>
+        </div>
+      </div>
     `;
-    list.appendChild(div);
+    list.appendChild(wrap);
+    const prevEl = document.getElementById('td-prev-' + task.id);
+    if (prevEl) prevEl.textContent = note;
+    const taEl = document.getElementById('td-ta-' + task.id);
+    if (taEl) taEl.value = note;
   });
 }
 
@@ -3457,6 +3481,55 @@ function wpToggleDone(taskId, doneKey, cb) {
   localStorage.setItem(doneKey, JSON.stringify(done));
   const span = document.getElementById('td-' + taskId);
   if (span) span.className = 'today-task-text' + (cb.checked ? ' done' : '');
+}
+
+function foEsc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function wpToggleNote(taskId){
+  const edit = document.getElementById('td-edit-' + taskId);
+  if (!edit) return;
+  const opening = edit.style.display === 'none';
+  if (opening){
+    const prev = document.getElementById('td-prev-' + taskId);
+    edit.style.display = '';
+    if (prev) prev.style.display = 'none';
+    const ta = document.getElementById('td-ta-' + taskId);
+    if (ta){ ta.focus(); const n = ta.value.length; ta.setSelectionRange(n, n); }
+  } else {
+    wpCollapseNote(taskId);
+  }
+}
+
+function wpCollapseNote(taskId){
+  const edit = document.getElementById('td-edit-' + taskId);
+  const prev = document.getElementById('td-prev-' + taskId);
+  const ico  = document.getElementById('td-ico-' + taskId);
+  const ta   = document.getElementById('td-ta-' + taskId);
+  const val  = ta ? ta.value : '';
+  const has  = val.trim().length > 0;
+  if (edit) edit.style.display = 'none';
+  if (prev){ prev.textContent = val; prev.style.display = has ? '' : 'none'; }
+  if (ico) ico.style.display = has ? '' : 'none';
+}
+
+function wpSaveNote(taskId, value){
+  const dayName = getTodayDayName();
+  const patch = (key) => {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return;
+      const plan = JSON.parse(raw);
+      const arr = plan[dayName];
+      if (!Array.isArray(arr)) return;
+      const t = arr.find(x => x.id === taskId);
+      if (t){ t.note = value; localStorage.setItem(key, JSON.stringify(plan)); }
+    } catch(e) {}
+  };
+  patch('fo-week-plan');
+  try { patch('fo-week-plan-' + getWeekKey()); } catch(e) {}
+  try { if (typeof wpTasks !== 'undefined' && wpTasks[dayName]){ const t = wpTasks[dayName].find(x => x.id === taskId); if (t) t.note = value; } } catch(e) {}
+  const ico = document.getElementById('td-ico-' + taskId);
+  if (ico) ico.style.display = value.trim().length ? '' : 'none';
 }
 
 // Show Friday planning reminder badge
