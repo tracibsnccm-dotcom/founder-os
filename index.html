@@ -3195,44 +3195,62 @@ const WP_DAYS_LIST = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturd
 
 // Default recurring schedule
 const WP_DEFAULT_TASKS = {
+  // Mon–Fri: identical maintenance set per the RCMS Weekly Operating Schedule (Notion master) — 45 min max
   Monday:    [
     {text:'Check Brevo automation activity — bounces/issues', entity:'ALL'},
     {text:'Check attorney email stats — opens/clicks', entity:'RCMS'},
-    {text:'Respond to LinkedIn messages', entity:'ALL'},
-    {text:'Review C.E.O. OS — anything urgent', entity:'ALL'},
+    {text:'Record podcast episode (audio, Riverside mobile)', entity:'NAE'},
+    {text:'Respond to LinkedIn messages/comments', entity:'ALL'},
+    {text:'Review Founder OS — anything urgent', entity:'ALL'},
   ],
   Tuesday:   [
-    {text:'Check Brevo automation activity', entity:'ALL'},
-    {text:'Record podcast episode (Riverside mobile)', entity:'NAE'},
+    {text:'Check Brevo automation activity — bounces/issues', entity:'ALL'},
+    {text:'Check attorney email stats — opens/clicks', entity:'RCMS'},
+    {text:'Record podcast episode (audio, Riverside mobile)', entity:'NAE'},
     {text:'Release scheduled podcast episode', entity:'NAE'},
-    {text:'Respond to LinkedIn messages', entity:'ALL'},
+    {text:'Respond to LinkedIn messages/comments', entity:'ALL'},
+    {text:'Review Founder OS — anything urgent', entity:'ALL'},
   ],
   Wednesday: [
-    {text:'Check Brevo automation activity', entity:'ALL'},
-    {text:'Record podcast episode (Riverside mobile)', entity:'NAE'},
-    {text:'Respond to LinkedIn messages', entity:'ALL'},
-    {text:'Check attorney email stats', entity:'RCMS'},
+    {text:'Check Brevo automation activity — bounces/issues', entity:'ALL'},
+    {text:'Check attorney email stats — opens/clicks', entity:'RCMS'},
+    {text:'Record podcast episode (audio, Riverside mobile)', entity:'NAE'},
+    {text:'Respond to LinkedIn messages/comments', entity:'ALL'},
+    {text:'Review Founder OS — anything urgent', entity:'ALL'},
   ],
   Thursday:  [
-    {text:'Check Brevo automation activity', entity:'ALL'},
-    {text:'Record podcast episode (Riverside mobile)', entity:'NAE'},
-    {text:'Respond to LinkedIn messages', entity:'ALL'},
+    {text:'Check Brevo automation activity — bounces/issues', entity:'ALL'},
+    {text:'Check attorney email stats — opens/clicks', entity:'RCMS'},
+    {text:'Record podcast episode (audio, Riverside mobile)', entity:'NAE'},
+    {text:'Respond to LinkedIn messages/comments', entity:'ALL'},
+    {text:'Review Founder OS — anything urgent', entity:'ALL'},
   ],
   Friday:    [
-    {text:'Check Brevo automation activity', entity:'ALL'},
-    {text:'Respond to LinkedIn messages', entity:'ALL'},
+    {text:'Check Brevo automation activity — bounces/issues', entity:'ALL'},
+    {text:'Check attorney email stats — opens/clicks', entity:'RCMS'},
+    {text:'Record podcast episode (audio, Riverside mobile)', entity:'NAE'},
+    {text:'Respond to LinkedIn messages/comments', entity:'ALL'},
+    {text:'Review Founder OS — anything urgent', entity:'ALL'},
     {text:'Open Week Planner — set up next week', entity:'ALL'},
-    {text:'Update C.E.O. OS — log completions', entity:'ALL'},
   ],
+  // Saturday: production day per the Notion master
   Saturday:  [
-    {text:'Funnels & campaigns block — build / launch / queue', entity:'ALL'},
-    {text:'Export Brevo lists & deduplicate', entity:'ALL'},
-    {text:'Upload to ZeroBounce & review results', entity:'ALL'},
-    {text:'Archive raw exports to Google Drive', entity:'ALL'},
+    {text:'Record YouTube video — 1 min., 2 if energy allows', entity:'NAE'},
+    {text:'Edit video in Riverside — trim, clean, export', entity:'NAE'},
+    {text:'Upload to YouTube — title, description, assessment link', entity:'NAE'},
+    {text:'LinkedIn content — write & schedule posts, all entities', entity:'ALL'},
+    {text:'NAE block — product updates, tools, site fixes', entity:'NAE'},
+    {text:'RCMS block — attorney follow-up, Apollo review, next batch', entity:'RCMS'},
+    {text:'NurseBridge block — list review, Apollo pull, batch prep', entity:'NB'},
+    {text:'W4TWP block — LinkedIn, RFP monitoring, proposals', entity:'W4TWP'},
+    {text:'Founder OS update — log completed, set next week priorities', entity:'ALL'},
   ],
+  // Sunday: writing & planning only — no recording, no technical work
   Sunday:    [
-    {text:'Build clean segmented lists from ZeroBounce results', entity:'ALL'},
-    {text:'Batch content prep — podcast / YouTube / Substack', entity:'NAE'},
+    {text:'Write next YouTube script / talking points', entity:'NAE'},
+    {text:'Write 2–4 Substack articles for upcoming weeks', entity:'NAE'},
+    {text:'Write podcast episode outlines for next batch', entity:'NAE'},
+    {text:'Review & respond to urgent emails/messages', entity:'ALL'},
   ],
 };
 
