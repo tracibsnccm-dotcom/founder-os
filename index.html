@@ -407,7 +407,7 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .wp-title{font-size:16px;font-weight:700;color:var(--t1)}
 .wp-sub{font-size:12px;color:var(--t3);margin-top:2px}
 .wp-close{width:28px;height:28px;border-radius:6px;border:.5px solid var(--bdr);background:none;color:var(--t3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
-.wp-days{display:grid;grid-template-columns:repeat(5,minmax(160px,1fr));gap:.75rem;margin-bottom:1rem;overflow-x:auto}
+.wp-days{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:.75rem;margin-bottom:1rem}
 .wp-day{background:var(--bg);border:.5px solid var(--bdr);border-radius:10px;padding:.75rem}
 .wp-day-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:.6rem;display:flex;align-items:center;justify-content:space-between}
 .wp-day-name{color:var(--g)}
@@ -741,7 +741,7 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
       <div class="today-title"><i class="ti ti-calendar-check" style="color:var(--g)"></i><span id="today-strip-title">Today's Tasks</span></div>
       <button class="today-plan-btn" onclick="openWeekPlanner()"><i class="ti ti-edit"></i> Plan Week</button>
     </div>
-    <div id="today-tasks-list"><div class="today-empty">No tasks scheduled for today. Click Plan Week to set up your week.</div></div>
+    <div id="today-tasks-list"><div class="today-empty">No tasks scheduled for today. Click Plan Week to set up your week — all seven days are available.</div></div>
   </div>
 
   <!-- KPI STRIP (6 metrics) -->
@@ -3191,7 +3191,7 @@ const WP_ENTITY_COLORS = {
   'ALL':   {bg:'#157272', text:'#fff'},
 };
 
-const WP_DAYS_LIST = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+const WP_DAYS_LIST = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 
 // Default recurring schedule
 const WP_DEFAULT_TASKS = {
@@ -3224,15 +3224,25 @@ const WP_DEFAULT_TASKS = {
     {text:'Open Week Planner — set up next week', entity:'ALL'},
     {text:'Update C.E.O. OS — log completions', entity:'ALL'},
   ],
+  Saturday:  [
+    {text:'Funnels & campaigns block — build / launch / queue', entity:'ALL'},
+    {text:'Export Brevo lists & deduplicate', entity:'ALL'},
+    {text:'Upload to ZeroBounce & review results', entity:'ALL'},
+    {text:'Archive raw exports to Google Drive', entity:'ALL'},
+  ],
+  Sunday:    [
+    {text:'Build clean segmented lists from ZeroBounce results', entity:'ALL'},
+    {text:'Batch content prep — podcast / YouTube / Substack', entity:'NAE'},
+  ],
 };
 
 let wpTasks = {}; // current planner state
-let wpWeekOffset = 0; // 0=next week, -1=current week, 1=two weeks out etc.
+let wpWeekOffset = 0; // 0=current week, 1=next week, -1=last week etc.
 
-function getNextMonday() {
+function getCurrentMonday() {
   const d = new Date();
   const day = d.getDay(); // 0=Sun,1=Mon...6=Sat
-  const diff = day === 0 ? 1 : (8 - day) % 7 || 7;
+  const diff = day === 0 ? -6 : 1 - day; // Sunday belongs to the week that started the previous Monday
   d.setDate(d.getDate() + diff);
   d.setHours(0,0,0,0);
   return d;
@@ -3261,14 +3271,14 @@ function wpReset() {
 }
 
 function getOffsetMonday(offset) {
-  const mon = getNextMonday();
+  const mon = getCurrentMonday();
   const d = new Date(mon);
   d.setDate(d.getDate() + offset * 7);
   return d;
 }
 
 function openWeekPlanner() {
-  wpWeekOffset = 0; // default to next/current week on open
+  wpWeekOffset = 0; // always open on the CURRENT week
   renderWpWithOffset();
   document.getElementById('wp-overlay').style.display = 'flex';
 }
@@ -3365,11 +3375,13 @@ function wpAddTask(dayName) {
 }
 
 function wpAutoSave() {
-  const mon = getOffsetMonday(wpWeekOffset);
-  const weekKey = mon.toISOString().slice(0,10);
+  const weekKey = getEditedWeekKey();
   try { localStorage.setItem('fo-week-plan-' + weekKey, JSON.stringify(wpTasks)); } catch {}
-  // Also update legacy key for today strip compatibility
-  try { localStorage.setItem('fo-week-plan', JSON.stringify(wpTasks)); } catch {}
+  // Only mirror to the legacy key when the week being edited IS the current week —
+  // editing next week must never overwrite what the today strip displays.
+  if (weekKey === getWeekKey()) {
+    try { localStorage.setItem('fo-week-plan', JSON.stringify(wpTasks)); } catch {}
+  }
 }
 
 function wpDeleteTask(dayName, taskId) {
@@ -3392,22 +3404,52 @@ async function wpSaveToSupabase() {
     const rows = [];
     Object.entries(wpTasks).forEach(([day, tasks]) => {
       tasks.forEach(t => {
-        rows.push({day_name: day, task_text: t.text, entity: t.entity, task_id: t.id, week_key: getWeekKey()});
+        rows.push({day_name: day, task_text: t.text, entity: t.entity, task_id: t.id, week_key: getEditedWeekKey()});
       });
     });
-    await SB.from('fo_week_tasks').delete().eq('week_key', getWeekKey());
+    await SB.from('fo_week_tasks').delete().eq('week_key', getEditedWeekKey());
     if (rows.length > 0) await SB.from('fo_week_tasks').insert(rows);
   } catch(e) { console.warn('WP Supabase save failed:', e); }
 }
 
 function getWeekKey() {
-  const mon = getNextMonday();
-  return mon.toISOString().slice(0,10);
+  return getCurrentMonday().toISOString().slice(0,10);
+}
+
+function getEditedWeekKey() {
+  return getOffsetMonday(wpWeekOffset).toISOString().slice(0,10);
 }
 
 function getTodayDayName() {
   const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   return days[new Date().getDay()];
+}
+
+// ── Completion state: single map { taskId: 'YYYY-MM-DD' } so done-ness survives day rollover ──
+function loadDoneMap() {
+  let map = {};
+  try { map = JSON.parse(localStorage.getItem('fo-tasks-done-map') || '{}'); } catch {}
+  // One-time migration: fold any legacy per-date arrays into the map
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('fo-tasks-done-') && k !== 'fo-tasks-done-map') {
+        const dateStr = k.slice('fo-tasks-done-'.length);
+        const arr = JSON.parse(localStorage.getItem(k) || '[]');
+        if (Array.isArray(arr)) arr.forEach(id => { if (!map[id]) map[id] = dateStr; });
+      }
+    }
+    localStorage.setItem('fo-tasks-done-map', JSON.stringify(map));
+  } catch {}
+  return map;
+}
+
+function loadWeekPlan(weekKey) {
+  try {
+    const raw = localStorage.getItem('fo-week-plan-' + weekKey);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
 }
 
 function renderTodayStrip() {
@@ -3416,36 +3458,63 @@ function renderTodayStrip() {
   const list = document.getElementById('today-tasks-list');
   const title = document.getElementById('today-strip-title');
 
-  // Show strip only on weekdays
-  const isWeekday = ['Monday','Tuesday','Wednesday','Thursday','Friday'].includes(dayName);
-  if (!isWeekday) { strip.style.display = 'none'; return; }
-
+  // Strip shows EVERY day — the operating week includes Saturday and Sunday.
   strip.style.display = 'block';
   title.textContent = dayName + "'s Tasks";
 
-  // Load saved tasks
-  const saved = localStorage.getItem('fo-week-plan');
-  let tasks = [];
-  if (saved) {
-    try {
-      const plan = JSON.parse(saved);
-      tasks = plan[dayName] || [];
-    } catch {}
+  const done = loadDoneMap();
+  const curKey = getWeekKey();
+
+  // Current week plan (week-keyed first, legacy fallback for migration)
+  let plan = loadWeekPlan(curKey);
+  if (!plan) {
+    try { plan = JSON.parse(localStorage.getItem('fo-week-plan') || 'null'); } catch {}
   }
+  plan = plan || {};
 
-  // Load completion state
-  const doneKey = 'fo-tasks-done-' + new Date().toISOString().slice(0,10);
-  let done = [];
-  try { done = JSON.parse(localStorage.getItem(doneKey) || '[]'); } catch {}
+  // Previous week plan — so an unfinished Saturday still shows on Monday
+  const prevMon = getCurrentMonday(); prevMon.setDate(prevMon.getDate() - 7);
+  const prevPlan = loadWeekPlan(prevMon.toISOString().slice(0,10)) || {};
 
-  if (tasks.length === 0) {
+  const todayIdx = WP_DAYS_LIST.indexOf(dayName);
+  const tasks = (plan[dayName] || []).slice();
+
+  // Carry-forward: unfinished tasks from earlier days of this week + all of last week
+  const carried = [];
+  WP_DAYS_LIST.forEach((d, i) => {
+    (prevPlan[d] || []).forEach(t => { if (!done[t.id]) carried.push({...t, carriedFrom: d + ' (last week)'}); });
+  });
+  WP_DAYS_LIST.forEach((d, i) => {
+    if (i < todayIdx) (plan[d] || []).forEach(t => { if (!done[t.id]) carried.push({...t, carriedFrom: d}); });
+  });
+
+  if (tasks.length === 0 && carried.length === 0) {
     list.innerHTML = '<div class="today-empty">No tasks for today. Click Plan Week to schedule your week.</div>';
     return;
   }
 
   list.innerHTML = '';
-  tasks.forEach(task => {
-    const isDone = done.includes(task.id);
+
+  if (carried.length > 0) {
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#A35515;margin:.2rem 0 .35rem;display:flex;align-items:center;gap:5px';
+    hdr.innerHTML = '<i class="ti ti-arrow-forward-up"></i> Carried over — unfinished';
+    list.appendChild(hdr);
+    carried.forEach(task => renderTodayTask(list, task, done, task.carriedFrom));
+    if (tasks.length > 0) {
+      const hdr2 = document.createElement('div');
+      hdr2.style.cssText = 'font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin:.55rem 0 .35rem';
+      hdr2.textContent = 'Today';
+      list.appendChild(hdr2);
+    }
+  }
+
+  tasks.forEach(task => renderTodayTask(list, task, done, null));
+}
+
+function renderTodayTask(list, task, done, carriedFrom) {
+  {
+    const isDone = !!done[task.id];
     const ec = WP_ENTITY_COLORS[task.entity] || WP_ENTITY_COLORS['ALL'];
     const note = task.note || '';
     const hasNote = note.trim().length > 0;
@@ -3453,8 +3522,9 @@ function renderTodayStrip() {
     wrap.className = 'today-task-wrap';
     wrap.innerHTML = `
       <div class="today-task">
-        <input type="checkbox" class="today-cb" ${isDone ? 'checked' : ''} onchange="wpToggleDone('${task.id}','${doneKey}',this)">
+        <input type="checkbox" class="today-cb" ${isDone ? 'checked' : ''} onchange="wpToggleDone('${task.id}',this)">
         <span class="today-badge" style="background:${ec.bg};color:${ec.text}">${task.entity}</span>
+        ${carriedFrom ? `<span style="font-size:9px;color:#A35515;border:.5px solid #A3551555;border-radius:4px;padding:0 4px;white-space:nowrap">${carriedFrom}</span>` : ''}
         <span class="today-task-text ${isDone ? 'done' : ''}" id="td-${task.id}" onclick="wpToggleNote('${task.id}')" title="Click to add a note to yourself">${foEsc(task.text)}<i class="ti ti-note today-note-ico" id="td-ico-${task.id}" style="${hasNote ? '' : 'display:none'}"></i></span>
       </div>
       <div class="today-note" id="td-note-${task.id}">
@@ -3470,15 +3540,15 @@ function renderTodayStrip() {
     if (prevEl) prevEl.textContent = note;
     const taEl = document.getElementById('td-ta-' + task.id);
     if (taEl) taEl.value = note;
-  });
+  }
 }
 
-function wpToggleDone(taskId, doneKey, cb) {
-  let done = [];
-  try { done = JSON.parse(localStorage.getItem(doneKey) || '[]'); } catch {}
-  if (cb.checked) { if (!done.includes(taskId)) done.push(taskId); }
-  else { done = done.filter(id => id !== taskId); }
-  localStorage.setItem(doneKey, JSON.stringify(done));
+function wpToggleDone(taskId, cb) {
+  let map = {};
+  try { map = JSON.parse(localStorage.getItem('fo-tasks-done-map') || '{}'); } catch {}
+  if (cb.checked) { map[taskId] = new Date().toISOString().slice(0,10); }
+  else { delete map[taskId]; }
+  try { localStorage.setItem('fo-tasks-done-map', JSON.stringify(map)); } catch {}
   const span = document.getElementById('td-' + taskId);
   if (span) span.className = 'today-task-text' + (cb.checked ? ' done' : '');
 }
