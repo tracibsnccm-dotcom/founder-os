@@ -3282,7 +3282,7 @@ function wpReset() {
   const mon = getOffsetMonday(wpWeekOffset || 0);
   wpTasks = {};
   getWeekDates(mon).forEach(({name}) => {
-    wpTasks[name] = (WP_DEFAULT_TASKS[name] || []).map(t => ({...t, id: crypto.randomUUID()}));
+    wpTasks[name] = (WP_DEFAULT_TASKS[name] || []).map(t => ({...t, id: crypto.randomUUID(), recurring: true}));
   });
   renderWpDays(getWeekDates(mon));
   wpAutoSave();
@@ -3321,7 +3321,7 @@ function renderWpWithOffset() {
   } else {
     // Fresh week — start empty, no defaults
     wpTasks = {};
-    weekDates.forEach(({name}) => { wpTasks[name] = (WP_DEFAULT_TASKS[name] || []).map(t => ({...t, id: crypto.randomUUID()})); });
+    weekDates.forEach(({name}) => { wpTasks[name] = (WP_DEFAULT_TASKS[name] || []).map(t => ({...t, id: crypto.randomUUID(), recurring: true})); });
   }
 
   renderWpDays(weekDates);
@@ -3462,6 +3462,25 @@ function loadDoneMap() {
   return map;
 }
 
+// Backfill: older saved weeks stored default tasks without the `recurring` flag,
+// which made them carry forward like one-off tasks. Mark any task whose text matches
+// a default as recurring so the flood self-heals on next load.
+function defaultTextSet() {
+  const s = new Set();
+  Object.values(WP_DEFAULT_TASKS).forEach(arr => arr.forEach(t => s.add(t.text)));
+  return s;
+}
+function normalizeRecurring(plan) {
+  if (!plan || typeof plan !== 'object') return plan;
+  const defaults = defaultTextSet();
+  Object.keys(plan).forEach(day => {
+    if (Array.isArray(plan[day])) {
+      plan[day].forEach(t => { if (t && t.recurring === undefined && defaults.has(t.text)) t.recurring = true; });
+    }
+  });
+  return plan;
+}
+
 function loadWeekPlan(weekKey) {
   try {
     const raw = localStorage.getItem('fo-week-plan-' + weekKey);
@@ -3488,22 +3507,23 @@ function renderTodayStrip() {
   if (!plan) {
     try { plan = JSON.parse(localStorage.getItem('fo-week-plan') || 'null'); } catch {}
   }
-  plan = plan || {};
+  plan = normalizeRecurring(plan || {});
 
   // Previous week plan — so an unfinished Saturday still shows on Monday
   const prevMon = getCurrentMonday(); prevMon.setDate(prevMon.getDate() - 7);
-  const prevPlan = loadWeekPlan(prevMon.toISOString().slice(0,10)) || {};
+  const prevPlan = normalizeRecurring(loadWeekPlan(prevMon.toISOString().slice(0,10)) || {});
 
   const todayIdx = WP_DAYS_LIST.indexOf(dayName);
   const tasks = (plan[dayName] || []).slice();
 
-  // Carry-forward: unfinished tasks from earlier days of this week + all of last week
+  // Carry-forward: ONLY user-added one-off tasks carry. Recurring daily maintenance
+  // items belong to their own day and never pile up (missing Monday's Brevo check does
+  // not mean you owe it Friday — Friday has its own).
   const carried = [];
   WP_DAYS_LIST.forEach((d, i) => {
-    (prevPlan[d] || []).forEach(t => { if (!done[t.id]) carried.push({...t, carriedFrom: d + ' (last week)'}); });
-  });
-  WP_DAYS_LIST.forEach((d, i) => {
-    if (i < todayIdx) (plan[d] || []).forEach(t => { if (!done[t.id]) carried.push({...t, carriedFrom: d}); });
+    if (i < todayIdx) (plan[d] || []).forEach(t => {
+      if (!t.recurring && !done[t.id]) carried.push({...t, carriedFrom: d});
+    });
   });
 
   if (tasks.length === 0 && carried.length === 0) {
