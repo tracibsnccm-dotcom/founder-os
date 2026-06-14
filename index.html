@@ -475,7 +475,7 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .exp-sub{font-size:11px;color:var(--t3);margin-top:2px}
 .exp-mo{border:.5px solid var(--bdr);border-radius:var(--rad-sm);padding:.35rem .6rem;font-size:12px;background:var(--card);color:var(--t1);font-family:var(--ff)}
 .exp-grid{display:grid;grid-template-columns:1fr 200px;gap:1rem}
-.exp-colhdr,.exp-row,.exp-addrow{display:grid;grid-template-columns:1fr 104px 90px 122px 74px 84px 26px;gap:.4rem;align-items:center}
+.exp-colhdr,.exp-row,.exp-addrow{display:grid;grid-template-columns:1fr 100px 86px 120px 72px 82px 60px;gap:.4rem;align-items:center}
 .exp-colhdr{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);font-weight:600;padding:0 .15rem .35rem}
 .exp-row{margin-bottom:.3rem}
 .exp-i{border:.5px solid var(--bdr);border-radius:var(--rad-sm);padding:.4rem .5rem;font-size:12px;background:var(--bg);color:var(--t1);font-family:var(--ff);width:100%}
@@ -485,6 +485,10 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .exp-pay{font-size:11px;font-weight:600;color:var(--dk);display:flex;align-items:center;justify-content:center;background:var(--gs);border-radius:var(--rad-sm);padding:.35rem .2rem;text-align:center;line-height:1.1}
 .exp-del{border:none;background:transparent;color:var(--t3);cursor:pointer;font-size:13px;padding:.2rem;border-radius:4px}
 .exp-del:hover{color:#ef4444;background:rgba(239,68,68,.08)}
+.exp-actions{display:flex;align-items:center;justify-content:flex-end;gap:.25rem}
+.exp-recur{border:.5px solid var(--bdr);background:var(--bg);color:var(--t3);cursor:pointer;font-size:12px;border-radius:var(--rad-sm);padding:.3rem .35rem;line-height:1;display:flex}
+.exp-recur:hover{color:var(--dk)}
+.exp-recur.on{background:var(--gs);border-color:var(--gb);color:var(--dk)}
 .exp-addrow{margin-top:.5rem;padding-top:.6rem;border-top:.5px dashed var(--bdr)}
 .exp-add{border:none;background:var(--g);color:#1a1205;font-weight:700;font-size:11px;border-radius:var(--rad-sm);padding:.45rem .3rem;cursor:pointer}
 .exp-add:hover{filter:brightness(1.05)}
@@ -502,7 +506,7 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
   .exp-colhdr{display:none}
   .exp-row,.exp-addrow{grid-template-columns:1fr 1fr}
   .exp-row .exp-desc-i,.exp-addrow #exp-desc{grid-column:1 / -1}
-  .exp-row .exp-del{grid-column:1 / -1;justify-self:end}
+  .exp-row .exp-actions{grid-column:1 / -1;justify-self:end}
   .exp-add{grid-column:1 / -1}
 }
 
@@ -1498,6 +1502,43 @@ function expSaveAll(obj){ try{ localStorage.setItem('fo-expenses',JSON.stringify
 function expMonthRows(mk){ return expLoadAll()[mk]||[]; }
 function expMonthTotal(mk){ return expMonthRows(mk).reduce((a,r)=>a+(parseFloat(r.amount)||0),0); }
 
+function expDaysInMonth(y,m){ return new Date(y,m,0).getDate(); }
+function expShiftDue(due,targetMk){
+  if(!due) return '';
+  const p=due.split('-'); if(p.length!==3) return '';
+  const tp=targetMk.split('-'); const ty=+tp[0], tm=+tp[1];
+  let day=+p[2]; const dim=expDaysInMonth(ty,tm); if(day>dim) day=dim;
+  return ty+'-'+String(tm).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+}
+function expNearestPriorMonthWithData(mk){
+  const all=expLoadAll(); const p=mk.split('-'); let y=+p[0], m=+p[1];
+  for(let i=0;i<24;i++){ m--; if(m<1){ m=12; y--; } const k=y+'-'+String(m).padStart(2,'0'); if(all[k]&&all[k].length) return k; }
+  return null;
+}
+function expEnsureMonth(mk){
+  let init={}; try{ init=JSON.parse(localStorage.getItem('fo-exp-init')||'{}'); }catch(e){}
+  if(init[mk]){ return; }
+  const all=expLoadAll();
+  const prior=expNearestPriorMonthWithData(mk);
+  if(prior){
+    const carry=(all[prior]||[]).filter(r=>r.recurring).map(r=>({
+      id:crypto.randomUUID(), tmpl:r.tmpl||r.id, desc:r.desc, category:r.category,
+      entity:r.entity, due:expShiftDue(r.due,mk), amount:r.amount, recurring:true
+    }));
+    if(carry.length){
+      if(!all[mk]) all[mk]=[];
+      const have=new Set(all[mk].map(x=>x.tmpl||x.id));
+      carry.forEach(c=>{ if(!have.has(c.tmpl)) all[mk].push(c); });
+      expSaveAll(all);
+    }
+  }
+  init[mk]=true;
+  try{ localStorage.setItem('fo-exp-init',JSON.stringify(init)); }catch(e){}
+}
+function expToggleRecur(id){
+  const all=expLoadAll(), r=(all[_expMonth]||[]).find(x=>x.id===id);
+  if(r){ r.recurring=!r.recurring; if(!r.tmpl) r.tmpl=r.id; expSaveAll(all); foRender(); }
+}
 function expComputePay(due){
   if(!due) return '';
   const p=due.split('-'); if(p.length!==3) return '';
@@ -1523,7 +1564,8 @@ function expAdd(){
   if(isNaN(a)||a<=0){ amt.focus(); return; }
   const all=expLoadAll();
   if(!all[_expMonth]) all[_expMonth]=[];
-  all[_expMonth].push({id:crypto.randomUUID(),desc:d,category:cat.value,entity:ent.value,due:due.value||'',amount:a});
+  const _nid=crypto.randomUUID();
+  all[_expMonth].push({id:_nid,tmpl:_nid,desc:d,category:cat.value,entity:ent.value,due:due.value||'',amount:a,recurring:false});
   expSaveAll(all); foRender();
   if(typeof foShowToast==='function') foShowToast('Expense added \u2713','#157272');
 }
@@ -1535,6 +1577,7 @@ function expUpdate(id,field,val){
 function expChangeMonth(v){ _expMonth=v; foRender(); }
 
 function expensePanel(){
+  expEnsureMonth(_expMonth);
   const total=expMonthTotal(_expMonth);
   const rows=expMonthRows(_expMonth).slice().sort((a,b)=>{ const da=a.due||'9999-99-99', db=b.due||'9999-99-99'; return da<db?-1:da>db?1:0; });
   const mNum=_expMonth; // YYYY-MM for date input default month
@@ -1549,7 +1592,10 @@ function expensePanel(){
       <input class="exp-i exp-due-i" type="date" value="${r.due||''}" onchange="expUpdate('${r.id}','due',this.value)">
       <span class="exp-pay" title="Scheduled pay date (auto)">${expPayLabel(r.due)||'\u2014'}</span>
       <input class="exp-i exp-amt-i" type="number" value="${r.amount||''}" onchange="expUpdate('${r.id}','amount',this.value)">
-      <button class="exp-del" onclick="expDel('${r.id}')" title="Remove">\u2715</button>
+      <div class="exp-actions">
+        <button class="exp-recur${r.recurring?' on':''}" onclick="expToggleRecur('${r.id}')" title="${r.recurring?'Recurring monthly \u2014 click to stop':'Mark recurring (auto-adds next month)'}"><i class="ti ti-repeat"></i></button>
+        <button class="exp-del" onclick="expDel('${r.id}')" title="Remove">\u2715</button>
+      </div>
     </div>`).join('') : '<div class="exp-empty">No bills logged for this month yet. Add your first below.</div>';
   const hist = expMonthList().filter(m=>expMonthTotal(m.val)>0).slice(0,6).map(m=>`
     <div class="exp-hist-row${m.val===_expMonth?' on':''}" onclick="expChangeMonth('${m.val}')">
