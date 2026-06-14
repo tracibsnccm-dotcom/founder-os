@@ -475,13 +475,14 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .exp-sub{font-size:11px;color:var(--t3);margin-top:2px}
 .exp-mo{border:.5px solid var(--bdr);border-radius:var(--rad-sm);padding:.35rem .6rem;font-size:12px;background:var(--card);color:var(--t1);font-family:var(--ff)}
 .exp-grid{display:grid;grid-template-columns:1fr 200px;gap:1rem}
-.exp-colhdr,.exp-row,.exp-addrow{display:grid;grid-template-columns:1fr 116px 100px 124px 88px 28px;gap:.4rem;align-items:center}
+.exp-colhdr,.exp-row,.exp-addrow{display:grid;grid-template-columns:1fr 104px 90px 122px 74px 84px 26px;gap:.4rem;align-items:center}
 .exp-colhdr{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);font-weight:600;padding:0 .15rem .35rem}
 .exp-row{margin-bottom:.3rem}
 .exp-i{border:.5px solid var(--bdr);border-radius:var(--rad-sm);padding:.4rem .5rem;font-size:12px;background:var(--bg);color:var(--t1);font-family:var(--ff);width:100%}
 .exp-i:focus{outline:none;border-color:var(--g);background:var(--card)}
 .exp-amt-i{text-align:right;font-variant-numeric:tabular-nums}
 .exp-due-i{font-size:11px;color:var(--t2)}
+.exp-pay{font-size:11px;font-weight:600;color:var(--dk);display:flex;align-items:center;justify-content:center;background:var(--gs);border-radius:var(--rad-sm);padding:.35rem .2rem;text-align:center;line-height:1.1}
 .exp-del{border:none;background:transparent;color:var(--t3);cursor:pointer;font-size:13px;padding:.2rem;border-radius:4px}
 .exp-del:hover{color:#ef4444;background:rgba(239,68,68,.08)}
 .exp-addrow{margin-top:.5rem;padding-top:.6rem;border-top:.5px dashed var(--bdr)}
@@ -1497,6 +1498,22 @@ function expSaveAll(obj){ try{ localStorage.setItem('fo-expenses',JSON.stringify
 function expMonthRows(mk){ return expLoadAll()[mk]||[]; }
 function expMonthTotal(mk){ return expMonthRows(mk).reduce((a,r)=>a+(parseFloat(r.amount)||0),0); }
 
+function expComputePay(due){
+  if(!due) return '';
+  const p=due.split('-'); if(p.length!==3) return '';
+  let y=+p[0], m=+p[1], d=+p[2];
+  let payD, payM=m, payY=y;
+  if(d<=15){ payD=25; payM=m-1; if(payM<1){ payM=12; payY=y-1; } }
+  else { payD=10; }
+  return payY+'-'+String(payM).padStart(2,'0')+'-'+String(payD).padStart(2,'0');
+}
+function expPayLabel(due){
+  const pay=expComputePay(due);
+  if(!pay) return '';
+  const p=pay.split('-');
+  const dt=new Date(+p[0],+p[1]-1,+p[2]);
+  return dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
 function expAdd(){
   const desc=document.getElementById('exp-desc'), amt=document.getElementById('exp-amt'),
         cat=document.getElementById('exp-cat'), ent=document.getElementById('exp-ent'),
@@ -1530,6 +1547,7 @@ function expensePanel(){
       <select class="exp-i" onchange="expUpdate('${r.id}','category',this.value)">${EXP_CATEGORIES.map(c=>`<option${c===r.category?' selected':''}>${c}</option>`).join('')}</select>
       <select class="exp-i" onchange="expUpdate('${r.id}','entity',this.value)">${EXP_ENTITIES.map(e=>`<option${e===r.entity?' selected':''}>${e}</option>`).join('')}</select>
       <input class="exp-i exp-due-i" type="date" value="${r.due||''}" onchange="expUpdate('${r.id}','due',this.value)">
+      <span class="exp-pay" title="Scheduled pay date (auto)">${expPayLabel(r.due)||'\u2014'}</span>
       <input class="exp-i exp-amt-i" type="number" value="${r.amount||''}" onchange="expUpdate('${r.id}','amount',this.value)">
       <button class="exp-del" onclick="expDel('${r.id}')" title="Remove">\u2715</button>
     </div>`).join('') : '<div class="exp-empty">No bills logged for this month yet. Add your first below.</div>';
@@ -1549,13 +1567,14 @@ function expensePanel(){
     </div>
     <div class="exp-grid">
       <div class="exp-main">
-        <div class="exp-colhdr"><span>Description</span><span>Category</span><span>Entity</span><span>Due</span><span style="text-align:right">Amount</span><span></span></div>
+        <div class="exp-colhdr"><span>Description</span><span>Category</span><span>Entity</span><span>Due</span><span style="text-align:center">Pay</span><span style="text-align:right">Amount</span><span></span></div>
         ${rowHtml}
         <div class="exp-addrow">
           <input class="exp-i" id="exp-desc" placeholder="e.g. Vercel, Brevo, ZeroBounce..." onkeydown="if(event.key==='Enter')expAdd()">
           <select class="exp-i" id="exp-cat">${catOpts}</select>
           <select class="exp-i" id="exp-ent">${entOpts}</select>
-          <input class="exp-i exp-due-i" id="exp-due" type="date" value="${mNum}-01" title="Due date">
+          <input class="exp-i exp-due-i" id="exp-due" type="date" value="${mNum}-01" title="Due date" oninput="var pv=document.getElementById('exp-pay-prev'); if(pv) pv.textContent=expPayLabel(this.value)||'\u2014';">
+          <span class="exp-pay" id="exp-pay-prev" title="Scheduled pay date (auto)">${expPayLabel(mNum+'-01')||'\u2014'}</span>
           <input class="exp-i exp-amt-i" id="exp-amt" type="number" placeholder="0.00" onkeydown="if(event.key==='Enter')expAdd()">
           <button class="exp-add" onclick="expAdd()">+ Add</button>
         </div>
