@@ -475,12 +475,13 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
 .exp-sub{font-size:11px;color:var(--t3);margin-top:2px}
 .exp-mo{border:.5px solid var(--bdr);border-radius:var(--rad-sm);padding:.35rem .6rem;font-size:12px;background:var(--card);color:var(--t1);font-family:var(--ff)}
 .exp-grid{display:grid;grid-template-columns:1fr 200px;gap:1rem}
-.exp-colhdr,.exp-row,.exp-addrow{display:grid;grid-template-columns:1fr 130px 110px 92px 28px;gap:.4rem;align-items:center}
+.exp-colhdr,.exp-row,.exp-addrow{display:grid;grid-template-columns:1fr 116px 100px 124px 88px 28px;gap:.4rem;align-items:center}
 .exp-colhdr{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);font-weight:600;padding:0 .15rem .35rem}
 .exp-row{margin-bottom:.3rem}
 .exp-i{border:.5px solid var(--bdr);border-radius:var(--rad-sm);padding:.4rem .5rem;font-size:12px;background:var(--bg);color:var(--t1);font-family:var(--ff);width:100%}
 .exp-i:focus{outline:none;border-color:var(--g);background:var(--card)}
 .exp-amt-i{text-align:right;font-variant-numeric:tabular-nums}
+.exp-due-i{font-size:11px;color:var(--t2)}
 .exp-del{border:none;background:transparent;color:var(--t3);cursor:pointer;font-size:13px;padding:.2rem;border-radius:4px}
 .exp-del:hover{color:#ef4444;background:rgba(239,68,68,.08)}
 .exp-addrow{margin-top:.5rem;padding-top:.6rem;border-top:.5px dashed var(--bdr)}
@@ -500,7 +501,7 @@ html,body{min-height:100%;background:var(--bg);font-family:var(--ff);color:var(-
   .exp-colhdr{display:none}
   .exp-row,.exp-addrow{grid-template-columns:1fr 1fr}
   .exp-row .exp-desc-i,.exp-addrow #exp-desc{grid-column:1 / -1}
-  .exp-row .exp-del{grid-column:2;justify-self:end}
+  .exp-row .exp-del{grid-column:1 / -1;justify-self:end}
   .exp-add{grid-column:1 / -1}
 }
 
@@ -1498,25 +1499,28 @@ function expMonthTotal(mk){ return expMonthRows(mk).reduce((a,r)=>a+(parseFloat(
 
 function expAdd(){
   const desc=document.getElementById('exp-desc'), amt=document.getElementById('exp-amt'),
-        cat=document.getElementById('exp-cat'), ent=document.getElementById('exp-ent');
+        cat=document.getElementById('exp-cat'), ent=document.getElementById('exp-ent'),
+        due=document.getElementById('exp-due');
   const d=(desc.value||'').trim(), a=parseFloat(amt.value);
   if(!d){ desc.focus(); return; }
   if(isNaN(a)||a<=0){ amt.focus(); return; }
   const all=expLoadAll();
   if(!all[_expMonth]) all[_expMonth]=[];
-  all[_expMonth].push({id:crypto.randomUUID(),desc:d,category:cat.value,entity:ent.value,amount:a});
+  all[_expMonth].push({id:crypto.randomUUID(),desc:d,category:cat.value,entity:ent.value,due:due.value||'',amount:a});
   expSaveAll(all); foRender();
   if(typeof foShowToast==='function') foShowToast('Expense added \u2713','#157272');
 }
 function expDel(id){ const all=expLoadAll(); if(all[_expMonth]) all[_expMonth]=all[_expMonth].filter(r=>r.id!==id); expSaveAll(all); foRender(); }
 function expUpdate(id,field,val){
   const all=expLoadAll(), r=(all[_expMonth]||[]).find(x=>x.id===id);
-  if(r){ r[field]= field==='amount'?(parseFloat(val)||0):val; expSaveAll(all); if(field==='amount') foRender(); }
+  if(r){ r[field]= field==='amount'?(parseFloat(val)||0):val; expSaveAll(all); if(field==='amount'||field==='due') foRender(); }
 }
 function expChangeMonth(v){ _expMonth=v; foRender(); }
 
 function expensePanel(){
-  const rows=expMonthRows(_expMonth), total=expMonthTotal(_expMonth);
+  const total=expMonthTotal(_expMonth);
+  const rows=expMonthRows(_expMonth).slice().sort((a,b)=>{ const da=a.due||'9999-99-99', db=b.due||'9999-99-99'; return da<db?-1:da>db?1:0; });
+  const mNum=_expMonth; // YYYY-MM for date input default month
   const moOpts=expMonthList().map(m=>`<option value="${m.val}"${m.val===_expMonth?' selected':''}>${m.lbl}</option>`).join('');
   const catOpts=EXP_CATEGORIES.map(c=>`<option>${c}</option>`).join('');
   const entOpts=EXP_ENTITIES.map(e=>`<option>${e}</option>`).join('');
@@ -1525,6 +1529,7 @@ function expensePanel(){
       <input class="exp-i exp-desc-i" value="${(r.desc||'').replace(/"/g,'&quot;')}" onchange="expUpdate('${r.id}','desc',this.value)">
       <select class="exp-i" onchange="expUpdate('${r.id}','category',this.value)">${EXP_CATEGORIES.map(c=>`<option${c===r.category?' selected':''}>${c}</option>`).join('')}</select>
       <select class="exp-i" onchange="expUpdate('${r.id}','entity',this.value)">${EXP_ENTITIES.map(e=>`<option${e===r.entity?' selected':''}>${e}</option>`).join('')}</select>
+      <input class="exp-i exp-due-i" type="date" value="${r.due||''}" onchange="expUpdate('${r.id}','due',this.value)">
       <input class="exp-i exp-amt-i" type="number" value="${r.amount||''}" onchange="expUpdate('${r.id}','amount',this.value)">
       <button class="exp-del" onclick="expDel('${r.id}')" title="Remove">\u2715</button>
     </div>`).join('') : '<div class="exp-empty">No bills logged for this month yet. Add your first below.</div>';
@@ -1544,12 +1549,13 @@ function expensePanel(){
     </div>
     <div class="exp-grid">
       <div class="exp-main">
-        <div class="exp-colhdr"><span>Description</span><span>Category</span><span>Entity</span><span style="text-align:right">Amount</span><span></span></div>
+        <div class="exp-colhdr"><span>Description</span><span>Category</span><span>Entity</span><span>Due</span><span style="text-align:right">Amount</span><span></span></div>
         ${rowHtml}
         <div class="exp-addrow">
           <input class="exp-i" id="exp-desc" placeholder="e.g. Vercel, Brevo, ZeroBounce..." onkeydown="if(event.key==='Enter')expAdd()">
           <select class="exp-i" id="exp-cat">${catOpts}</select>
           <select class="exp-i" id="exp-ent">${entOpts}</select>
+          <input class="exp-i exp-due-i" id="exp-due" type="date" value="${mNum}-01" title="Due date">
           <input class="exp-i exp-amt-i" id="exp-amt" type="number" placeholder="0.00" onkeydown="if(event.key==='Enter')expAdd()">
           <button class="exp-add" onclick="expAdd()">+ Add</button>
         </div>
